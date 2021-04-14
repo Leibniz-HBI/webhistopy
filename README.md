@@ -1,3 +1,3 @@
 # WebHistoPy
 
-Experimental reconceptualisation of Webhistorian as an application written in in Python
+Experimental reconceptualisation of Webhistorian as an application written in Python
