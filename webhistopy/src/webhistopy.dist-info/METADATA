@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Briefcase-Version: 0.3.5
+Name: webhistopy
+Formal-Name: WebHistoPy
+App-ID: de.leibniz-hbi.mrml.webhistopy
+Version: 0.0.1
+Home-page: https://github.com/Leibniz-HBI/webhistopy
+Author: Felix Victor Münch
+Author-email: f.muench@leibniz-hbi.de
+Summary: Helps you to combine, analyse and export your webhistory from several browsers.

@@ -1,0 +1,49 @@
+[tool.briefcase]
+project_name = "WebHistoPy"
+bundle = "de.leibniz-hbi.mrml"
+version = "0.0.1"
+url = "https://github.com/Leibniz-HBI/webhistopy"
+license = "GNU General Public License v3 (GPLv3)"
+author = 'Felix Victor Münch'
+author_email = "f.muench@leibniz-hbi.de"
+
+[tool.briefcase.app.webhistopy]
+formal_name = "WebHistoPy"
+description = "Helps you to combine, analyse and export your webhistory from several browsers."
+icon = "src/webhistopy/resources/webhistopy"
+sources = ['src/webhistopy']
+requires = []
+
+
+[tool.briefcase.app.webhistopy.macOS]
+requires = [
+    'toga-cocoa>=0.3.0.dev20',
+]
+
+[tool.briefcase.app.webhistopy.linux]
+requires = [
+    'toga-gtk>=0.3.0.dev20',
+]
+system_requires = [
+    'libgirepository1.0-dev',
+    'libcairo2-dev',
+    'libpango1.0-dev',
+    'libwebkitgtk-3.0-0',
+    'gir1.2-webkit-3.0',
+]
+
+[tool.briefcase.app.webhistopy.windows]
+requires = [
+    'toga-winforms>=0.3.0.dev20',
+]
+
+# Mobile deployments
+[tool.briefcase.app.webhistopy.iOS]
+requires = [
+    'toga-iOS>=0.3.0.dev20',
+]
+
+[tool.briefcase.app.webhistopy.android]
+requires = [
+    'toga-android>=0.3.0.dev20',
+]
