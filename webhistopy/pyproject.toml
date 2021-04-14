@@ -12,7 +12,10 @@ formal_name = "WebHistoPy"
 description = "Helps you to combine, analyse and export your webhistory from several browsers."
 icon = "src/webhistopy/resources/webhistopy"
 sources = ['src/webhistopy']
-requires = []
+requires = [
+    'pandas',
+    'browser-history'
+]
 
 
 [tool.briefcase.app.webhistopy.macOS]

@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 briefcase = "*"
+pandas = "*"
+browser-history = "*"
 
 [dev-packages]
 
