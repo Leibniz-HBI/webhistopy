@@ -2,8 +2,10 @@
 Experimental reconceptualisation of Webhistorian in Python
 """
 import webbrowser
+import subprocess
 import textwrap
 
+from time import sleep
 from urllib.parse import urlparse
 
 from browser_history.browsers import Brave, Chrome, Firefox, Safari
@@ -36,19 +38,23 @@ class WebhistoPy(toga.App):
 
         self.main_window = toga.MainWindow(title=self.formal_name)
 
-        b = Safari()
+        b = Brave()
         try:
             output = b.fetch_history()
         except PermissionError:
             if isinstance(b, Safari):
                 webbrowser.open('x-apple.systempreferences:com.apple.preference.security?Privacy')
+                sleep(1)
+                subprocess.Popen(["open", '/Applications'])
+                sleep(1)
                 self.main_window.info_dialog(
                     'Hi there!',
                     textwrap.dedent("""\
                         Hello,
-                        for privacy reasons, MacOS requires you to give this app Full Disk Access to analyse your Safari History.
+                        for privacy reasons, MacOS requires you to give this app Full Disk Access \
+                        to analyse your Safari History.
                         Please, in the just opened Preference Window
-                        
+
                         1. Click the lock and enter your password
                         2. Select "Full Disk Access" on the left.
                         3. Drag and drop this App from your Applications folder into the list on the right.
@@ -64,7 +70,6 @@ class WebhistoPy(toga.App):
         df['domain'] = df[1].apply(lambda url: get_domain(url))
         top_domains = df.value_counts('domain')
         top_208 = top_domains[top_domains >= 0]
-        print(top_208)
         # bar_plot_domains(top_208)
         top_df = top_208.reset_index()
         top_df.columns = ['domain', 'visits']
@@ -87,9 +92,9 @@ class WebhistoPy(toga.App):
         #     style=Pack(flex=1)
         # )
 
-        main_box = toga.SplitContainer()
+        main_box = toga.Box()
 
-        main_box.content = [table, table]
+        main_box.add(table)
 
         self.main_window.content = main_box
         self.main_window.show()
