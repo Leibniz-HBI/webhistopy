@@ -6,9 +6,10 @@ name = "pypi"
 [packages]
 briefcase = "*"
 pandas = "*"
-browser-history = "*"
+browser-history = {editable = true, path = "./browser-history"}
 
 [dev-packages]
+flake8 = "*"
 
 [requires]
 python_version = "3.8"
