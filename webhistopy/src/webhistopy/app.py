@@ -1,7 +1,9 @@
 """
 Experimental reconceptualisation of Webhistorian in Python
 """
-from pathlib import Path
+import webbrowser
+import textwrap
+
 from urllib.parse import urlparse
 
 from browser_history.browsers import Brave, Chrome, Firefox, Safari
@@ -31,15 +33,31 @@ def get_domain(url):
 class WebhistoPy(toga.App):
 
     def startup(self):
-        """
-        Construct and show the Toga application.
 
-        Usually, you would add your application to a main content box.
-        We then create a main window (with a name matching the app), and
-        show the main window.
-        """
-        b = Firefox()
-        output = b.fetch_history()
+        self.main_window = toga.MainWindow(title=self.formal_name)
+
+        b = Safari()
+        try:
+            output = b.fetch_history()
+        except PermissionError:
+            if isinstance(b, Safari):
+                webbrowser.open('x-apple.systempreferences:com.apple.preference.security?Privacy')
+                self.main_window.info_dialog(
+                    'Hi there!',
+                    textwrap.dedent("""\
+                        Hello,
+                        for privacy reasons, MacOS requires you to give this app Full Disk Access to analyse your Safari History.
+                        Please, in the just opened Preference Window
+                        
+                        1. Click the lock and enter your password
+                        2. Select "Full Disk Access" on the left.
+                        3. Drag and drop this App from your Applications folder into the list on the right.
+                        5. Restart the app.
+
+                        Thank you so much!""")
+                )
+                raise
+
         history = output.histories
 
         df = pd.DataFrame(history)
@@ -73,7 +91,6 @@ class WebhistoPy(toga.App):
 
         main_box.content = [table, table]
 
-        self.main_window = toga.MainWindow(title=self.formal_name)
         self.main_window.content = main_box
         self.main_window.show()
 
