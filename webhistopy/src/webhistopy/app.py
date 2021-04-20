@@ -38,7 +38,7 @@ class WebhistoPy(toga.App):
 
         self.main_window = toga.MainWindow(title=self.formal_name)
 
-        b = Brave()
+        b = Safari()
         try:
             output = b.fetch_history()
         except PermissionError:
