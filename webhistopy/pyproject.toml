@@ -14,7 +14,7 @@ icon = "src/webhistopy/resources/webhistopy"
 sources = ['src/webhistopy']
 requires = [
     'pandas',
-    '../browser-history'
+    'browser-history'
 ]
 
 

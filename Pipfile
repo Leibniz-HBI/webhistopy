@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 briefcase = "*"
 pandas = "*"
-browser-history = {editable = true, path = "./browser-history"}
+browser-history = ">=0.3.1"
 
 [dev-packages]
 flake8 = "*"
