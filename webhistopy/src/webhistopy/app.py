@@ -3,21 +3,19 @@ Experimental reconceptualisation of Webhistorian in Python
 '''
 
 import os
-import webbrowser
 import subprocess
 import textwrap
-
+import webbrowser
 from time import sleep
 from urllib.parse import urlparse
 
 import browser_history
 import pandas as pd
-import pyyaml
 import toga
-
+import yaml
 from browser_history.browsers import Safari
 from toga.style import Pack
-from toga.style.pack import COLUMN
+from toga.style.pack import COLUMN, ROW
 
 '''
 def bar_plot_domains(topdomains, path=None):
@@ -62,30 +60,36 @@ class WebhistoPy(toga.App):
                 style=Pack(padding=10, padding_left=25)
             )
 
-        self.main_window = toga.MainWindow(title=self.formal_name, size=(1024, 768))
+        self.main_window = toga.MainWindow(title=self.formal_name, size=(1024,768))
 
-        main_box = toga.SplitContainer()
+        self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
+        self.right = toga.Box(id='right', style=Pack(direction=ROW, flex=2))
 
-        left = toga.Box(id='left', style=Pack(direction=COLUMN))
-        right = toga.Box(id='right', style=Pack(direction=COLUMN))
+        self.main_box = toga.Box()
 
-        main_box.content = [(left, 3, True), (right, 0, True)]
+        self.main_box.add(self.left)
+        self.main_box.add(self.right)
+
+        self.main_window.size = (1024, 768)
 
         select_browser_text = toga.Label(
             "Welche Browser verwenden Sie beruflich?",
             style=large_font)
-        left.add(select_browser_text)
+        self.left.add(select_browser_text)
 
         supported_browsers = browser_history.utils.get_browsers()
         browser_list = [browser.__name__ for browser in supported_browsers]
 
         for browser in browser_list:
-            left.add(browser_switch(browser))
+            self.left.add(browser_switch(browser))
 
-        self.table_container = right
+        self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1))
+        self.right.add(self.table_container)
+        self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN))
+        self.right.add(self.preview)
 
         limiter_label = toga.Label(
-            'Wieviele Besuche soll eine Domain haben, um erfasst zu werden?',
+            'Wieviele Besuche pro Domain, um erfasst zu werden?',
             style=large_font)
         self.visit_limiter = toga.NumberInput(
             min_value=0,
@@ -94,16 +98,16 @@ class WebhistoPy(toga.App):
             step=10,
             style=large_font
             )
-        left.add(limiter_label)
-        left.add(self.visit_limiter)
+        self.left.add(limiter_label)
+        self.left.add(self.visit_limiter)
 
-        left.add(toga.Button(
+        self.left.add(toga.Button(
             'Zeige besuchte Domains',
             style=large_font,
             on_press=self.show_histories
         ))
 
-        self.main_window.content = main_box
+        self.main_window.content = self.main_box
         self.main_window.show()
 
     def remove_row(self, table, row):
@@ -111,14 +115,32 @@ class WebhistoPy(toga.App):
 
     def create_export(self, button):
         data = {}
+        i = 0
         for row in self.table.data:
-            data[row.domain] = row.visits
+            if row.domain == '[gelöscht]':
+                key = f'[geloescht_{i}]'
+                i += 1
+            else:
+                key = row.domain
+            data[key] = row.visits
 
-        print(data)
+        if button.id == "preview":
+            try:
+                for i in range(3):
+                    self.preview.remove(self.preview.children[0])
+            except IndexError:
+                pass
+            self.preview.add(toga.MultilineTextInput(
+                initial=yaml.dump(data), readonly=True,
+                style=Pack(flex=1)
+            ))
+            self.preview.add(toga.Label('Exakt dieser Text wird hochgeladen.', style=large_font))
+            self.preview.add(self.export_button())
+            # self.preview.refresh()
 
     def preview_button(self):
         button = toga.Button(
-            'Upload-Vorschau', style=large_font,
+            'Vorschau', id='preview', style=large_font,
             on_press=self.create_export)
         return button
 
@@ -131,9 +153,13 @@ class WebhistoPy(toga.App):
             self.main_window.error_dialog('Keine Auswahl', 'Bitte wählen Sie mindestens einen Browser.')
             return 1
         data = self.get_histories(self.browsers)
-        if len(self.table_container.children) > 0:
-            for child in range(4):
+
+        try:
+            for child in range(3):
                 self.table_container.remove(self.table_container.children[0])
+        except IndexError:
+            pass
+
         self.table = toga.Table(
             ['domain', 'visits'],
             data=data, style=Pack(flex=1),
@@ -142,10 +168,9 @@ class WebhistoPy(toga.App):
 
         self.table_container.add(self.table)
         self.table_container.add(toga.Label(
-            'Um eine Domain zu löschen, doppelklicken Sie die entsprechende Zeile.',
+            'Doppelklicken um eine Seite zu löschen.',
             style=Pack(padding=10, font_weight='bold', font_size=14)))
         self.table_container.add(self.preview_button())
-        self.table_container.add(self.export_button())
 
     def get_histories(self, browsers):
 

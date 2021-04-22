@@ -4,15 +4,19 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-briefcase = "*"
+browser-history = "*"
 pandas = "*"
-browser-history = ">=0.3.1"
+toga = ">=0.3.0.dev20"
 pyyaml = "*"
 
 [dev-packages]
+briefcase = "*"
 flake8 = "*"
 autopep8 = "*"
 isort = "*"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
