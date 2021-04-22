@@ -33,7 +33,7 @@ large_font = Pack(padding=10, font_weight='bold', font_size=14)
 def get_domain(url):
     t = urlparse(url).netloc
     full = t.split('.')
-    if full[0] == 'www':
+    if full[0] == 'www' or full[0] == 'ww':
         return '.'.join(full[1:])
     else:
         return '.'.join(full)
@@ -60,7 +60,9 @@ class WebhistoPy(toga.App):
                 style=Pack(padding=10, padding_left=25)
             )
 
-        self.main_window = toga.MainWindow(title=self.formal_name, size=(1024,768))
+        self.main_window = toga.MainWindow(
+            size=(1400, 900), position=(0, 0),
+            title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
         self.right = toga.Box(id='right', style=Pack(direction=ROW, flex=2))
@@ -69,8 +71,6 @@ class WebhistoPy(toga.App):
 
         self.main_box.add(self.left)
         self.main_box.add(self.right)
-
-        self.main_window.size = (1024, 768)
 
         select_browser_text = toga.Label(
             "Welche Browser verwenden Sie beruflich?",
@@ -114,15 +114,17 @@ class WebhistoPy(toga.App):
         row.domain = '[gelöscht]'
 
     def create_export(self, button):
-        data = {}
+        data = {'domains': {}}
         i = 0
         for row in self.table.data:
             if row.domain == '[gelöscht]':
                 key = f'[geloescht_{i}]'
                 i += 1
+            elif row.domain == '':
+                key = 'N/A'
             else:
-                key = row.domain
-            data[key] = row.visits
+                key = str(row.domain)
+            data['domains'][key] = row.visits
 
         if button.id == "preview":
             try:
@@ -131,7 +133,7 @@ class WebhistoPy(toga.App):
             except IndexError:
                 pass
             self.preview.add(toga.MultilineTextInput(
-                initial=yaml.dump(data), readonly=True,
+                initial=str(yaml.dump(data)), readonly=True,
                 style=Pack(flex=1)
             ))
             self.preview.add(toga.Label('Exakt dieser Text wird hochgeladen.', style=large_font))
@@ -163,8 +165,7 @@ class WebhistoPy(toga.App):
         self.table = toga.Table(
             ['domain', 'visits'],
             data=data, style=Pack(flex=1),
-            on_double_click=self.remove_row,
-            accessors=['domain', 'visits'])
+            on_double_click=self.remove_row)
 
         self.table_container.add(self.table)
         self.table_container.add(toga.Label(
