@@ -8,10 +8,13 @@ import textwrap
 from time import sleep
 from urllib.parse import urlparse
 
-from browser_history.browsers import Brave, Chrome, Firefox, Safari
+import browser_history
 import pandas as pd
 import toga
+
+from browser_history.browsers import Safari
 from toga.style import Pack
+from toga.style.pack import COLUMN
 
 '''
 def bar_plot_domains(topdomains, path=None):
@@ -36,68 +39,111 @@ class WebhistoPy(toga.App):
 
     def startup(self):
 
-        self.main_window = toga.MainWindow(title=self.formal_name)
+        self.browsers = []
 
-        b = Safari()
-        try:
-            output = b.fetch_history()
-        except PermissionError:
-            if isinstance(b, Safari):
-                webbrowser.open('x-apple.systempreferences:com.apple.preference.security?Privacy')
-                sleep(1)
-                subprocess.Popen(["open", '/Applications'])
-                sleep(1)
-                self.main_window.info_dialog(
-                    'Hi there!',
-                    textwrap.dedent("""\
-                        Hello,
-                        for privacy reasons, MacOS requires you to give this app Full Disk Access \
-                        to analyse your Safari History.
-                        Please, in the just opened Preference Window
+        def toggle_browser(switch):
+            browser = switch.label
+            if browser not in self.browsers:
+                self.browsers.append(browser)
+            else:
+                self.browsers.remove(browser)
+            print(self.browsers)
 
-                        1. Click the lock and enter your password
-                        2. Select "Full Disk Access" on the left.
-                        3. Drag and drop this App from your Applications folder into the list on the right.
-                        5. Restart the app.
+        def browser_switch(browser):
+            return toga.Switch(
+                browser,
+                on_toggle=toggle_browser,
+                style=Pack(padding=10, padding_left=25)
+            )
 
-                        Thank you so much!""")
-                )
-                raise
+        self.main_window = toga.MainWindow(title=self.formal_name, size=(1024, 768))
 
-        history = output.histories
+        main_box = toga.SplitContainer()
 
-        df = pd.DataFrame(history)
-        df['domain'] = df[1].apply(lambda url: get_domain(url))
-        top_domains = df.value_counts('domain')
-        top_208 = top_domains[top_domains >= 0]
-        # bar_plot_domains(top_208)
-        top_df = top_208.reset_index()
-        top_df.columns = ['domain', 'visits']
-        data = top_df.to_dict('records')
+        left = toga.Box(id='left', style=Pack(direction=COLUMN))
+        right = toga.Box(id='right')
 
-        table = toga.Table(['domain', 'visits'],
-                           data=data,
-                           style=Pack(flex=1))
+        main_box.content = [left, right]
 
-        # cwd = str(Path.cwd())
-        # image = toga.Image(
-        #     f'{cwd}/figure.png',
-        #     )
-        # plot = toga.ImageView(
-        #     image,
-        #     style=Pack(padding=50),
-        #     )
-        # plot_viewer = toga.ScrollContainer(
-        #    content=plot,
-        #     style=Pack(flex=1)
-        # )
+        select_browser_text = toga.Label(
+            "Welche Browser verwenden Sie beruflich?",
+            style=Pack(flex=1, padding=10))
+        left.add(select_browser_text)
 
-        main_box = toga.Box()
+        supported_browsers = browser_history.utils.get_browsers()
+        browser_list = [browser.__name__ for browser in supported_browsers]
 
-        main_box.add(table)
+        for browser in browser_list:
+            left.add(browser_switch(browser))
+
+        self.table_container = right
+
+        left.add(toga.Button(
+            'Zeige besuchte Domains',
+            style=Pack(padding=20),
+            on_press=self.show_histories
+        ))
 
         self.main_window.content = main_box
         self.main_window.show()
+
+    def show_histories(self, button):
+        data = self.get_histories(self.browsers)
+        if len(self.table_container.children) > 0:
+            self.table_container.remove(self.table_container.children[0])
+        table = toga.Table(['domain', 'visits'],
+                           data=data, style=Pack(flex=1))
+
+        self.table_container.add(table)
+
+    def get_histories(self, browsers):
+
+        output_df = pd.DataFrame(columns=['domain', 'visits'])
+
+        for browser in browsers:
+            Browser = browser_history.utils.get_browser(browser)
+            b = Browser()
+            try:
+                output = b.fetch_history()
+            except PermissionError:
+                if isinstance(b, Safari):
+                    webbrowser.open(
+                        'x-apple.systempreferences:com.apple.preference.security?Privacy')
+                    sleep(1)
+                    subprocess.Popen(["open", '/Applications'])
+                    sleep(1)
+                    self.main_window.info_dialog(
+                        'Hi there!',
+                        textwrap.dedent("""\
+                            Hello,
+                            for privacy reasons, MacOS requires you to give this app Full Disk Access \
+                            to analyse your Safari History.
+                            Please, in the just opened Preference Window
+
+                            1. Click the lock and enter your password
+                            2. Select "Full Disk Access" on the left.
+                            3. Drag and drop this App from your Applications folder into the list on the right.
+                            5. Restart the app.
+
+                            Thank you so much!""")
+                    )
+                    raise
+
+            history = output.histories
+
+            df = pd.DataFrame(history)
+            df['domain'] = df[1].apply(lambda url: get_domain(url))
+            output_df = output_df.append(df)
+
+        top_domains = output_df.value_counts('domain')
+
+        top_df = top_domains[top_domains >= 100]
+
+        top_df = top_df.reset_index()
+        top_df.columns = ['domain', 'visits']
+        data = top_df.to_dict('records')
+
+        return data
 
 
 def main():
