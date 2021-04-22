@@ -27,6 +27,9 @@ def bar_plot_domains(topdomains, path=None):
 '''
 
 
+large_font = Pack(padding=10, font_weight='bold', font_size=14)
+
+
 def get_domain(url):
     t = urlparse(url).netloc
     full = t.split('.')
@@ -62,13 +65,13 @@ class WebhistoPy(toga.App):
         main_box = toga.SplitContainer()
 
         left = toga.Box(id='left', style=Pack(direction=COLUMN))
-        right = toga.Box(id='right')
+        right = toga.Box(id='right', style=Pack(direction=COLUMN))
 
-        main_box.content = [left, right]
+        main_box.content = [(left, 3, True), (right, 0, True)]
 
         select_browser_text = toga.Label(
             "Welche Browser verwenden Sie beruflich?",
-            style=Pack(flex=1, padding=10))
+            style=large_font)
         left.add(select_browser_text)
 
         supported_browsers = browser_history.utils.get_browsers()
@@ -81,21 +84,42 @@ class WebhistoPy(toga.App):
 
         left.add(toga.Button(
             'Zeige besuchte Domains',
-            style=Pack(padding=20),
+            style=large_font,
             on_press=self.show_histories
         ))
 
         self.main_window.content = main_box
         self.main_window.show()
 
+    def remove_row(self, table, row):
+        row.domain = '[gelöscht]'
+
+    def preview_button(self):
+        button = toga.Button('Upload-Vorschau', style=large_font)
+        return button
+
+    def export_button(self):
+        button = toga.Button('Upload', style=large_font)
+        return button
+
     def show_histories(self, button):
+        if len(self.browsers) == 0:
+            self.main_window.error_dialog('Keine Auswahl', 'Bitte wählen Sie mindestens einen Browser.')
+            return 1
         data = self.get_histories(self.browsers)
         if len(self.table_container.children) > 0:
-            self.table_container.remove(self.table_container.children[0])
+            for child in range(4):
+                self.table_container.remove(self.table_container.children[0])
         table = toga.Table(['domain', 'visits'],
-                           data=data, style=Pack(flex=1))
+                           data=data, style=Pack(flex=1),
+                           on_double_click=self.remove_row)
 
+        self.table_container.add(toga.Label(
+            'Um eine Domain zu löschen, doppelklicken Sie die entsprechende Zeile.',
+            style=Pack(padding=10, font_weight='bold', font_size=14)))
         self.table_container.add(table)
+        self.table_container.add(self.preview_button())
+        self.table_container.add(self.export_button())
 
     def get_histories(self, browsers):
 
