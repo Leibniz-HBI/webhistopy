@@ -1,6 +1,7 @@
-"""
+'''
 Experimental reconceptualisation of Webhistorian in Python
-"""
+'''
+
 import webbrowser
 import subprocess
 import textwrap
@@ -102,7 +103,20 @@ class WebhistoPy(toga.App):
 
         for browser in browsers:
             Browser = browser_history.utils.get_browser(browser)
-            b = Browser()
+            try:
+                b = Browser()
+            except TypeError:
+                self.main_window.error_dialog(
+                    'Nicht unterstützt',
+                    textwrap.dedent(
+                        f"""\
+                        {browser} ist leider nicht unterstützt auf ihrem Betriebssystem.
+                        Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
+                        kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser bitte ab.
+                        """
+                    )
+                )
+                continue
             try:
                 output = b.fetch_history()
             except PermissionError:
@@ -132,8 +146,20 @@ class WebhistoPy(toga.App):
             history = output.histories
 
             df = pd.DataFrame(history)
-            df['domain'] = df[1].apply(lambda url: get_domain(url))
-            output_df = output_df.append(df)
+            try:
+                df['domain'] = df[1].apply(lambda url: get_domain(url))
+                output_df = output_df.append(df)
+            except KeyError:
+                self.main_window.error_dialog(
+                    'Keine Daten',
+                    textwrap.dedent(
+                        f"""\
+                        Keine Daten für {browser}. Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
+                        kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser ab.
+                        """
+                        )
+                )
+                continue
 
         top_domains = output_df.value_counts('domain')
 
