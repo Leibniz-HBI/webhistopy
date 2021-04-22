@@ -2,6 +2,7 @@
 Experimental reconceptualisation of Webhistorian in Python
 '''
 
+import os
 import webbrowser
 import subprocess
 import textwrap
@@ -11,6 +12,7 @@ from urllib.parse import urlparse
 
 import browser_history
 import pandas as pd
+import pyyaml
 import toga
 
 from browser_history.browsers import Safari
@@ -82,6 +84,19 @@ class WebhistoPy(toga.App):
 
         self.table_container = right
 
+        limiter_label = toga.Label(
+            'Wieviele Besuche soll eine Domain haben, um erfasst zu werden?',
+            style=large_font)
+        self.visit_limiter = toga.NumberInput(
+            min_value=0,
+            max_value=500,
+            default=10,
+            step=10,
+            style=large_font
+            )
+        left.add(limiter_label)
+        left.add(self.visit_limiter)
+
         left.add(toga.Button(
             'Zeige besuchte Domains',
             style=large_font,
@@ -94,8 +109,17 @@ class WebhistoPy(toga.App):
     def remove_row(self, table, row):
         row.domain = '[gelöscht]'
 
+    def create_export(self, button):
+        data = {}
+        for row in self.table.data:
+            data[row.domain] = row.visits
+
+        print(data)
+
     def preview_button(self):
-        button = toga.Button('Upload-Vorschau', style=large_font)
+        button = toga.Button(
+            'Upload-Vorschau', style=large_font,
+            on_press=self.create_export)
         return button
 
     def export_button(self):
@@ -110,14 +134,16 @@ class WebhistoPy(toga.App):
         if len(self.table_container.children) > 0:
             for child in range(4):
                 self.table_container.remove(self.table_container.children[0])
-        table = toga.Table(['domain', 'visits'],
-                           data=data, style=Pack(flex=1),
-                           on_double_click=self.remove_row)
+        self.table = toga.Table(
+            ['domain', 'visits'],
+            data=data, style=Pack(flex=1),
+            on_double_click=self.remove_row,
+            accessors=['domain', 'visits'])
 
+        self.table_container.add(self.table)
         self.table_container.add(toga.Label(
             'Um eine Domain zu löschen, doppelklicken Sie die entsprechende Zeile.',
             style=Pack(padding=10, font_weight='bold', font_size=14)))
-        self.table_container.add(table)
         self.table_container.add(self.preview_button())
         self.table_container.add(self.export_button())
 
@@ -187,7 +213,7 @@ class WebhistoPy(toga.App):
 
         top_domains = output_df.value_counts('domain')
 
-        top_df = top_domains[top_domains >= 100]
+        top_df = top_domains[top_domains >= self.visit_limiter.value]
 
         top_df = top_df.reset_index()
         top_df.columns = ['domain', 'visits']
