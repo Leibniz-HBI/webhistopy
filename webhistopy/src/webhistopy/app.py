@@ -27,7 +27,8 @@ def bar_plot_domains(topdomains, path=None):
 '''
 
 
-large_font = Pack(padding=10, font_weight='bold', font_size=14)
+large_font = Pack(padding=10, font_weight='bold', font_size=15)
+large_font_flex = Pack(padding=10, font_size=15, flex=1)
 
 
 def get_domain(url):
@@ -57,7 +58,7 @@ class WebhistoPy(toga.App):
             return toga.Switch(
                 browser,
                 on_toggle=toggle_browser,
-                style=Pack(padding=10, padding_left=25)
+                style=Pack(padding=10, padding_left=25, font_size=15)
             )
 
         self.main_window = toga.MainWindow(
@@ -138,7 +139,7 @@ class WebhistoPy(toga.App):
                 pass
             self.preview.add(toga.MultilineTextInput(
                 initial=str(yaml.dump(data)), readonly=True,
-                style=Pack(flex=1)
+                style=large_font_flex
             ))
             self.preview.add(toga.Label('Exakt dieser Text wird hochgeladen.', style=large_font))
             self.preview.add(self.export_button())
@@ -168,7 +169,7 @@ class WebhistoPy(toga.App):
 
         self.table = toga.Table(
             ['domain', 'visits'],
-            data=data, style=Pack(flex=1),
+            data=data, style=large_font_flex,
             on_double_click=self.remove_row)
 
         self.table_container.add(self.table)
