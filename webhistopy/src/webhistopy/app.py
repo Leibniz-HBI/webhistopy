@@ -89,7 +89,7 @@ class WebhistoPy(toga.App):
         self.right.add(self.preview)
 
         limiter_label = toga.Label(
-            'Wieviele Besuche pro Domain, um erfasst zu werden?',
+            'Verberge alle Seiten mit weniger als',
             style=large_font)
         self.visit_limiter = toga.NumberInput(
             min_value=0,
@@ -98,8 +98,12 @@ class WebhistoPy(toga.App):
             step=10,
             style=large_font
             )
+        limiter_label_2 = toga.Label(
+            'Besuchen.',
+            style=large_font)
         self.left.add(limiter_label)
         self.left.add(self.visit_limiter)
+        self.left.add(limiter_label_2)
 
         self.left.add(toga.Button(
             'Zeige besuchte Domains',
@@ -111,14 +115,14 @@ class WebhistoPy(toga.App):
         self.main_window.show()
 
     def remove_row(self, table, row):
-        row.domain = '[gelöscht]'
+        row.domain = '[verborgen]'
 
     def create_export(self, button):
-        data = {'domains': {}}
+        data = {'domains': {}, 'browsers': self.browsers}
         i = 0
         for row in self.table.data:
-            if row.domain == '[gelöscht]':
-                key = f'[geloescht_{i}]'
+            if row.domain == '[verborgen]':
+                key = f'[verborgen_{i}]'
                 i += 1
             elif row.domain == '':
                 key = 'N/A'
@@ -169,7 +173,7 @@ class WebhistoPy(toga.App):
 
         self.table_container.add(self.table)
         self.table_container.add(toga.Label(
-            'Doppelklicken um eine Seite zu löschen.',
+            'Doppelklicken um eine Seite zu verbergen.',
             style=Pack(padding=10, font_weight='bold', font_size=14)))
         self.table_container.add(self.preview_button())
 
@@ -239,10 +243,12 @@ class WebhistoPy(toga.App):
 
         top_domains = output_df.value_counts('domain')
 
-        top_df = top_domains[top_domains >= self.visit_limiter.value]
+        top_df = top_domains
+        # top_df = top_domains[top_domains >= self.visit_limiter.value]
 
         top_df = top_df.reset_index()
         top_df.columns = ['domain', 'visits']
+        top_df['domain'][top_df['visits'] <= self.visit_limiter.value] = '[verborgen]'
         data = top_df.to_dict('records')
 
         return data
