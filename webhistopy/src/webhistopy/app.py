@@ -2,7 +2,6 @@
 Experimental reconceptualisation of Webhistorian in Python
 '''
 
-import os
 import subprocess
 import textwrap
 import webbrowser
@@ -116,7 +115,12 @@ class WebhistoPy(toga.App):
         self.main_window.show()
 
     def remove_row(self, table, row):
-        row.domain = '[verborgen]'
+        if row.hide == ' ⌫ ':
+            row.hide = row.domain
+            row.domain = '[verborgen]'
+        else:
+            row.domain = row.hide
+            row.hide = ' ⌫ '
 
     def create_export(self, button):
         data = {'domains': {}, 'browsers': self.browsers}
@@ -168,13 +172,13 @@ class WebhistoPy(toga.App):
             pass
 
         self.table = toga.Table(
-            ['domain', 'visits'],
+            ['domain', 'visits', 'hide'],
             data=data, style=large_font_flex,
-            on_double_click=self.remove_row)
+            on_select=self.remove_row)
 
         self.table_container.add(self.table)
         self.table_container.add(toga.Label(
-            'Doppelklicken um eine Seite zu verbergen.',
+            'Klicken um eine Seite zu verbergen.',
             style=Pack(padding=10, font_weight='bold', font_size=14)))
         self.table_container.add(self.preview_button())
 
@@ -250,6 +254,7 @@ class WebhistoPy(toga.App):
         top_df = top_df.reset_index()
         top_df.columns = ['domain', 'visits']
         top_df['domain'][top_df['visits'] <= self.visit_limiter.value] = '[verborgen]'
+        top_df['hide'] = " ⌫ "
         data = top_df.to_dict('records')
 
         return data
