@@ -21,12 +21,12 @@ requires = [
 
 [tool.briefcase.app.webhistopy.macOS]
 requires = [
-    'toga-cocoa>=0.3.0.dev20',
+    'toga-cocoa>=0.3.0.dev27',
 ]
 
 [tool.briefcase.app.webhistopy.linux]
 requires = [
-    'toga-gtk>=0.3.0.dev20',
+    'toga-gtk>=0.3.0.dev27',
 ]
 system_requires = [
     'libgirepository1.0-dev',
@@ -38,16 +38,16 @@ system_requires = [
 
 [tool.briefcase.app.webhistopy.windows]
 requires = [
-    'toga-winforms>=0.3.0.dev20',
+    'toga-winforms>=0.3.0.dev27',
 ]
 
 # Mobile deployments
 [tool.briefcase.app.webhistopy.iOS]
 requires = [
-    'toga-iOS>=0.3.0.dev20',
+    'toga-iOS>=0.3.0.dev27',
 ]
 
 [tool.briefcase.app.webhistopy.android]
 requires = [
-    'toga-android>=0.3.0.dev20',
+    'toga-android>=0.3.0.dev27',
 ]
