@@ -61,7 +61,7 @@ class WebhistoPy(toga.App):
             )
 
         self.main_window = toga.MainWindow(
-            size=(1400, 900), position=(0, 0),
+            size=(1024, 768), position=(100, 100),
             title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
@@ -212,19 +212,23 @@ class WebhistoPy(toga.App):
                     subprocess.Popen(["open", '/Applications'])
                     sleep(1)
                     self.main_window.info_dialog(
-                        'Hi there!',
+                        'Moin!',
                         textwrap.dedent("""\
-                            Hello,
-                            for privacy reasons, MacOS requires you to give this app Full Disk Access \
-                            to analyse your Safari History.
-                            Please, in the just opened Preference Window
+                            Aus Privatsphäre-Gründen benötigt macOS Ihre Erlaubnis, \
+                            damit Safari-Daten ausgewertet werden können.
+                            Wir finden das gut, aber es macht etwas Arbeit.
 
-                            1. Click the lock and enter your password
-                            2. Select "Full Disk Access" on the left.
-                            3. Drag and drop this App from your Applications folder into the list on the right.
-                            5. Restart the app.
+                            Wechseln Sie bitte ins soeben geöffnete Einstellungsfenster und
+                            1. klicken Sie auf das Schloss und geben ihr System-Passwort oder ihre \
+                                Touch ID ein
+                            2. wählen Sie "Vollständiger Datenzugriff" im Menü links
+                            3. ziehen Sie die Webhistopy App aus ihrem "Anwendungen"-Ordner in die \
+                                Liste auf der rechten Seite
+                            4. starten Sie die App erneut.
 
-                            Thank you so much!""")
+                            Diese Erlaubnis können Sie dort auch jederzeit widerrufen \
+                            und Sie haben die Möglichkeit, alle Daten vor einem Upload einzusehen und zu bereinigen.
+                            Herzlichen Dank!""")
                     )
                     raise
 
