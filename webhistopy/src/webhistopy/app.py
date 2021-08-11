@@ -214,20 +214,16 @@ class WebhistoPy(toga.App):
                     self.main_window.info_dialog(
                         'Moin!',
                         textwrap.dedent("""\
-                            Aus Privatsphäre-Gründen benötigt macOS Ihre Erlaubnis, \
-                            damit Safari-Daten ausgewertet werden können.
-                            Wir finden das gut, aber es macht etwas Arbeit.
+                            Aus Privatsphäre-Gründen benötigen wir Ihre Erlaubnis, Safari-Daten auszuwerten.
 
                             Wechseln Sie bitte ins soeben geöffnete Einstellungsfenster und
-                            1. klicken Sie auf das Schloss und geben ihr System-Passwort oder ihre \
-                                Touch ID ein
-                            2. wählen Sie "Vollständiger Datenzugriff" im Menü links
-                            3. ziehen Sie die Webhistopy App aus ihrem "Anwendungen"-Ordner in die \
-                                Liste auf der rechten Seite
+                            1. klicken Sie auf das Schloss und geben ihr System-Passwort ein.
+                            2. wählen Sie "Vollständiger Datenzugriff" im Menü links.
+                            3. ziehen Sie die Webhistopy App aus ihrem "Anwendungen"-Ordner in die Liste \
+                                auf der rechten Seite.
                             4. starten Sie die App erneut.
 
-                            Diese Erlaubnis können Sie dort auch jederzeit widerrufen \
-                            und Sie haben die Möglichkeit, alle Daten vor einem Upload einzusehen und zu bereinigen.
+                            Sie haben die Möglichkeit, alle Daten vor Upload zu bereinigen.
                             Herzlichen Dank!""")
                     )
                     raise
