@@ -25,13 +25,14 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
-# config
-visits_limit = 10 # minimum visits for a domain not to be hidden
 
+# config
+visits_limit = 10  # minimum visits for a domain not to be hidden
 # config end
 
 large_font = Pack(padding=10, font_weight='bold', font_size=15)
 large_font_flex = Pack(padding=10, font_size=15, flex=1)
+small_font_flex = Pack(padding=10, font_size=9, flex=1)
 
 
 def get_domain(url):
@@ -136,9 +137,11 @@ class WebhistoPy(toga.App):
     def create_export(self, button):
         data = {'domains': {}, 'browsers': self.browsers}
         i = 0
+        history = self.history
         for row in self.table.data:
             if row.domain == '[verborgen]':
                 key = f'[verborgen_{i}]'
+                history['domain'].replace(to_replace=row.hide, value=f'[verborgen_{i}]', inplace=True)
                 i += 1
             elif row.domain == '':
                 key = 'N/A'
@@ -154,9 +157,14 @@ class WebhistoPy(toga.App):
                 pass
             self.preview.add(toga.MultilineTextInput(
                 initial=str(yaml.dump(data)), readonly=True,
-                style=large_font_flex
+                style=small_font_flex
             ))
-            self.preview.add(toga.Label('Exakt dieser Text wird hochgeladen.'))
+
+            self.preview.add(toga.MultilineTextInput(
+                initial=history.to_string(index=False, header=['Zeit', 'Domain']), readonly=True,
+                style=small_font_flex
+            ))
+            self.preview.add(toga.Label('Nur exakt diese Daten werden erfasst.'))
             self.preview.add(self.export_button())
             # self.preview.refresh()
 
@@ -256,6 +264,7 @@ class WebhistoPy(toga.App):
                         )
                 )
                 continue
+        self.history = output_df[[0, 'domain']]
 
         top_domains = output_df.value_counts('domain')
 
@@ -264,6 +273,10 @@ class WebhistoPy(toga.App):
 
         top_df = top_df.reset_index()
         top_df.columns = ['domain', 'visits']
+
+        self.history['domain'][self.history['domain'].isin(
+            top_df['domain'][top_df['visits'] <= self.visit_limiter])] = '[verborgen]'
+
         top_df['domain'][top_df['visits'] <= self.visit_limiter] = '[verborgen]'
         top_df['hide'] = " ⌫ "
         data = top_df.to_dict('records')
