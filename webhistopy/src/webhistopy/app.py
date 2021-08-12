@@ -25,6 +25,10 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
+# config
+visits_limit = 10 # minimum visits for a domain not to be hidden
+
+# config end
 
 large_font = Pack(padding=10, font_weight='bold', font_size=15)
 large_font_flex = Pack(padding=10, font_size=15, flex=1)
@@ -88,6 +92,7 @@ class WebhistoPy(toga.App):
         self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN))
         self.right.add(self.preview)
 
+        '''
         limiter_label = toga.Label(
             'Verberge alle Seiten mit weniger als',
             style=large_font)
@@ -104,12 +109,18 @@ class WebhistoPy(toga.App):
         self.left.add(limiter_label)
         self.left.add(self.visit_limiter)
         self.left.add(limiter_label_2)
+        '''
 
         self.left.add(toga.Button(
             'Zeige besuchte Domains',
             style=large_font,
             on_press=self.show_histories
         ))
+
+        self.visit_limiter = visits_limit
+        limiter_label = toga.Label(
+            f'(Domains mit weniger als {self.visit_limiter} Besuchen werden verborgen.)')
+        self.left.add(limiter_label)
 
         self.main_window.content = self.main_box
         self.main_window.show()
@@ -145,7 +156,7 @@ class WebhistoPy(toga.App):
                 initial=str(yaml.dump(data)), readonly=True,
                 style=large_font_flex
             ))
-            self.preview.add(toga.Label('Exakt dieser Text wird hochgeladen.', style=large_font))
+            self.preview.add(toga.Label('Exakt dieser Text wird hochgeladen.'))
             self.preview.add(self.export_button())
             # self.preview.refresh()
 
@@ -253,7 +264,7 @@ class WebhistoPy(toga.App):
 
         top_df = top_df.reset_index()
         top_df.columns = ['domain', 'visits']
-        top_df['domain'][top_df['visits'] <= self.visit_limiter.value] = '[verborgen]'
+        top_df['domain'][top_df['visits'] <= self.visit_limiter] = '[verborgen]'
         top_df['hide'] = " ⌫ "
         data = top_df.to_dict('records')
 
