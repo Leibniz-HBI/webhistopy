@@ -2,6 +2,7 @@
 Experimental reconceptualisation of Webhistorian in Python
 '''
 
+import datetime
 import subprocess
 import textwrap
 import webbrowser
@@ -9,6 +10,7 @@ from time import sleep
 from urllib.parse import urlparse
 
 import browser_history
+import numpy as np
 import pandas as pd
 import toga
 import yaml
@@ -28,6 +30,7 @@ def bar_plot_domains(topdomains, path=None):
 
 # config
 visits_limit = 10  # minimum visits for a domain not to be hidden
+time_limit = 7*12  # number of days to retrieve history for
 # config end
 
 large_font = Pack(padding=10, font_weight='bold', font_size=15)
@@ -66,7 +69,7 @@ class WebhistoPy(toga.App):
             )
 
         self.main_window = toga.MainWindow(
-            size=(1024, 768), position=(100, 100),
+            size=(1180, 700), position=(100, 100),
             title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
@@ -120,7 +123,8 @@ class WebhistoPy(toga.App):
 
         self.visit_limiter = visits_limit
         limiter_label = toga.Label(
-            f'(Domains mit weniger als {self.visit_limiter} Besuchen werden verborgen.)')
+            f'Nur Besuche der letzten {time_limit} Tage werden erfasst und\nDomains mit weniger als {self.visit_limiter} Besuchen werden verborgen.',
+            style=Pack(padding=10))
         self.left.add(limiter_label)
 
         self.main_window.content = self.main_box
@@ -250,6 +254,14 @@ class WebhistoPy(toga.App):
             history = output.histories
 
             df = pd.DataFrame(history)
+
+            df = df[df[0].dt.tz_localize(None) > np.datetime64(
+                datetime.datetime.now() - pd.to_timedelta(f"{time_limit}days"))]
+
+            print(df[0].dtype)
+
+            print(df)
+
             try:
                 df['domain'] = df[1].apply(lambda url: get_domain(url))
                 output_df = output_df.append(df)
@@ -264,7 +276,7 @@ class WebhistoPy(toga.App):
                         )
                 )
                 continue
-        self.history = output_df[[0, 'domain']]
+        self.history = output_df[[0, 'domain']].sort_values(0)
 
         top_domains = output_df.value_counts('domain')
 
