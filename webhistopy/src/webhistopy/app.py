@@ -36,10 +36,11 @@ day_names = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
 day_map = dict()
 
+i = 0
 for day in day_names:
-    i = 0
     day_map[day] = i
     i += 1
+    print(day_map)
 
 large_font = Pack(padding=10, font_weight='bold', font_size=15)
 large_font_flex = Pack(padding=10, font_size=15, flex=1)
@@ -61,6 +62,7 @@ class WebhistoPy(toga.App):
 
         self.browsers = []
         self.days = []
+        self.times = {}
 
         def toggle_browser(switch):
             browser = switch.label
@@ -90,6 +92,25 @@ class WebhistoPy(toga.App):
                 day, on_toggle=toggle_day,
                 style=Pack(padding=5, padding_left=25, font_size=15)
             )
+
+        def select_time(selection):
+            self.times[selection.id] = selection.value
+            print(self.times)
+
+        def time_select(name):
+            box = toga.Box(style=Pack(direction=ROW))
+            box.add(toga.Label(f'Üblicher {name} um ',
+                    style=Pack(padding=5, padding_left=25, font_size=15)),
+                    )
+            box.add(toga.Selection(id=name,
+                    items=[''] + [str(time) for time in range(24)],
+                    on_select=select_time,
+                    style=Pack(padding=5, font_size=15)
+                    ))
+            box.add(toga.Label(' Uhr.',  style=Pack(
+                padding=5, font_size=15)))
+
+            return box
 
         self.main_window = toga.MainWindow(
             size=(1180, 700), position=(100, 100),
@@ -121,6 +142,9 @@ class WebhistoPy(toga.App):
 
         for day in day_names:
             self.left.add(day_switch(day))
+
+        self.left.add(time_select('Beginn'))
+        self.left.add(time_select('Feierabend'))
 
         self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1))
         self.right.add(self.table_container)
@@ -174,7 +198,7 @@ class WebhistoPy(toga.App):
             row.hide = ' ⌫ '
 
     def create_export(self, button):
-        data = {'domains': {}, 'browsers': self.browsers, 'days': self.days}
+        data = {'domains': {}, 'browsers': self.browsers, 'days': self.days, 'times': self.times}
         i = 0
         history = self.history
         for row in self.table.data:
@@ -190,7 +214,7 @@ class WebhistoPy(toga.App):
 
         if button.id == "preview":
             try:
-                for i in range(3):
+                for i in range(len(self.preview.children)):
                     self.preview.remove(self.preview.children[0])
             except IndexError:
                 pass
@@ -295,9 +319,13 @@ class WebhistoPy(toga.App):
 
             week_day_numbers = [day_map[day] for day in self.days]
 
-            df = df[df[0].dt.weekday.isin(week_day_numbers)]
+            print(self.days)
+            print(week_day_numbers)
 
-            print(df[0].dtype)
+            df = df[df[0].dt.weekday.isin(week_day_numbers)]  # limit to work_days
+
+            df = df[df[0].dt.hour < int(self.times['Feierabend'])]
+            df = df[df[0].dt.hour > int(self.times['Beginn'])]  # limit to times
 
             print(df)
 
