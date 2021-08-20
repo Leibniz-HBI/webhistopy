@@ -31,7 +31,15 @@ def bar_plot_domains(topdomains, path=None):
 # config
 visits_limit = 10  # minimum visits for a domain not to be hidden
 time_limit = 7*12  # number of days to retrieve history for
+day_names = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 # config end
+
+day_map = dict()
+
+for day in day_names:
+    i = 0
+    day_map[day] = i
+    i += 1
 
 large_font = Pack(padding=10, font_weight='bold', font_size=15)
 large_font_flex = Pack(padding=10, font_size=15, flex=1)
@@ -52,6 +60,7 @@ class WebhistoPy(toga.App):
     def startup(self):
 
         self.browsers = []
+        self.days = []
 
         def toggle_browser(switch):
             browser = switch.label
@@ -65,7 +74,21 @@ class WebhistoPy(toga.App):
             return toga.Switch(
                 browser,
                 on_toggle=toggle_browser,
-                style=Pack(padding=10, padding_left=25, font_size=15)
+                style=Pack(padding=5, padding_left=25, font_size=15)
+            )
+
+        def toggle_day(switch):
+            day = switch.label
+            if day not in self.days:
+                self.days.append(day)
+            else:
+                self.days.remove(day)
+            print(self.days)
+
+        def day_switch(day):
+            return toga.Switch(
+                day, on_toggle=toggle_day,
+                style=Pack(padding=5, padding_left=25, font_size=15)
             )
 
         self.main_window = toga.MainWindow(
@@ -90,6 +113,14 @@ class WebhistoPy(toga.App):
 
         for browser in browser_list:
             self.left.add(browser_switch(browser))
+
+        select_day_text = toga.Label(
+            "An welchen Tagen arbeiten Sie üblicherweise?",
+            style=large_font)
+        self.left.add(select_day_text)
+
+        for day in day_names:
+            self.left.add(day_switch(day))
 
         self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1))
         self.right.add(self.table_container)
@@ -123,7 +154,11 @@ class WebhistoPy(toga.App):
 
         self.visit_limiter = visits_limit
         limiter_label = toga.Label(
-            f'Nur Besuche der letzten {time_limit} Tage werden erfasst und\nDomains mit weniger als {self.visit_limiter} Besuchen werden verborgen.',
+            textwrap.dedent(f'''
+            Nur Besuche der letzten {time_limit} Tage werden erfasst und
+            Domains mit weniger als {self.visit_limiter} Besuchen
+            sowie außerhalb der Arbeitszeiten werden verborgen.
+            '''),
             style=Pack(padding=10))
         self.left.add(limiter_label)
 
@@ -139,7 +174,7 @@ class WebhistoPy(toga.App):
             row.hide = ' ⌫ '
 
     def create_export(self, button):
-        data = {'domains': {}, 'browsers': self.browsers}
+        data = {'domains': {}, 'browsers': self.browsers, 'days': self.days}
         i = 0
         history = self.history
         for row in self.table.data:
@@ -256,7 +291,11 @@ class WebhistoPy(toga.App):
             df = pd.DataFrame(history)
 
             df = df[df[0].dt.tz_localize(None) > np.datetime64(
-                datetime.datetime.now() - pd.to_timedelta(f"{time_limit}days"))]
+                datetime.datetime.now() - pd.to_timedelta(f"{time_limit}days"))]  # limit to last x days
+
+            week_day_numbers = [day_map[day] for day in self.days]
+
+            df = df[df[0].dt.weekday.isin(week_day_numbers)]
 
             print(df[0].dtype)
 
