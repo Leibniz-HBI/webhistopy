@@ -8,6 +8,7 @@ browser-history = "*"
 pandas = "*"
 toga = "*"
 pyyaml = "*"
+pyncclient = "*"
 
 [dev-packages]
 briefcase = "*"

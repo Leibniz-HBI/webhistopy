@@ -15,7 +15,8 @@ sources = ['src/webhistopy']
 requires = [
     'pandas',
     'browser-history',
-    'pyyaml'
+    'pyyaml',
+    'pyncclient'
 ]
 
 

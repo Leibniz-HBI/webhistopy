@@ -11,6 +11,7 @@ from time import sleep
 from urllib.parse import urlparse
 
 import browser_history
+import nextcloud_client
 import numpy as np
 import pandas as pd
 import toga
@@ -33,6 +34,7 @@ def bar_plot_domains(topdomains, path=None):
 visits_limit = 10  # minimum visits for a domain not to be hidden
 time_limit = 7*12  # number of days to retrieve history for
 day_names = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+public_link = ''  # public nextcloud link
 # config end
 
 day_map = dict()
@@ -242,10 +244,17 @@ class WebhistoPy(toga.App):
         return button
 
     def upload(self, button):
-        self.history.to_csv(os.path.expanduser("~/Desktop/web_histopy_history.csv"),
+        history_path = os.path.expanduser("~/Desktop/web_histopy_history.csv")
+        data_path = os.path.expanduser("~/Desktop/web_histopy_stats.yaml")
+
+        self.history.to_csv(history_path,
                             header=['Zeit', 'Domain'], index=False)
-        with open(os.path.expanduser("~/Desktop/web_histopy_stats.yaml"), 'w') as f:
+        with open(data_path, 'w') as f:
             yaml.dump(self.data, f)
+
+        nc = nextcloud_client.Client.from_public_link(public_link)
+        nc.drop_file(history_path)
+        nc.drop_file(data_path)
 
     def export_button(self):
         button = toga.Button('Upload', style=large_font, on_press=self.upload)
