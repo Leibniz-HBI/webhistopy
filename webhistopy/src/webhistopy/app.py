@@ -3,6 +3,7 @@ Experimental reconceptualisation of Webhistorian in Python
 '''
 
 import datetime
+import os
 import subprocess
 import textwrap
 import webbrowser
@@ -63,6 +64,7 @@ class WebhistoPy(toga.App):
         self.browsers = []
         self.days = []
         self.times = {}
+        self.data = {}
 
         def toggle_browser(switch):
             browser = switch.label
@@ -231,14 +233,22 @@ class WebhistoPy(toga.App):
             self.preview.add(self.export_button())
             # self.preview.refresh()
 
+        self.data = data
+
     def preview_button(self):
         button = toga.Button(
             'Vorschau', id='preview', style=large_font,
             on_press=self.create_export)
         return button
 
+    def upload(self, button):
+        self.history.to_csv(os.path.expanduser("~/Desktop/web_histopy_history.csv"),
+                            header=['Zeit', 'Domain'], index=False)
+        with open(os.path.expanduser("~/Desktop/web_histopy_stats.yaml"), 'w') as f:
+            yaml.dump(self.data, f)
+
     def export_button(self):
-        button = toga.Button('Upload', style=large_font)
+        button = toga.Button('Upload', style=large_font, on_press=self.upload)
         return button
 
     def show_histories(self, button):
