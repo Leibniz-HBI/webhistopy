@@ -138,7 +138,7 @@ class WebhistoPy(toga.App):
             "Wie lautet Ihr Teilnahme-Code?",
             style=large_font)
         self.left.add(pseudonym_text)
-        
+
         self.pseudonym = toga.TextInput(
             placeholder='Bitte hier ihren persönlichen Code eintragen',
             style=large_font
