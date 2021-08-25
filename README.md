@@ -12,7 +12,9 @@ For impression purposes only. Might be outdated.
 
 ### macOS
 
-<img width="1316" alt="Screenshot 2021-04-23 at 13 55 21" src="https://user-images.githubusercontent.com/8951994/118265274-2fde9d80-b4b9-11eb-95f1-308bf05fe062.png">
+![image](https://user-images.githubusercontent.com/8951994/130818151-fd1935d6-bea1-4a28-923d-7c8c9cf8356c.png)
+
+
 
 ### Windows
 
