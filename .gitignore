@@ -114,3 +114,4 @@ dmypy.json
 .pyre/
 .vscode/settings.json
 Pipfile.lock
+webhistopy/src/webhistopy/config.yaml

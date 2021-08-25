@@ -134,6 +134,18 @@ class WebhistoPy(toga.App):
         self.main_box.add(self.left)
         self.main_box.add(self.right)
 
+        pseudonym_text = toga.Label(
+            "Wie lautet Ihr Teilnahme-Code?",
+            style=large_font)
+        self.left.add(pseudonym_text)
+        
+        self.pseudonym = toga.TextInput(
+            placeholder='Bitte hier ihren persönlichen Code eintragen',
+            style=large_font
+            )
+
+        self.left.add(self.pseudonym)
+
         select_browser_text = toga.Label(
             "Welche Browser verwenden Sie beruflich?",
             style=large_font)
@@ -208,7 +220,8 @@ class WebhistoPy(toga.App):
             row.hide = ' ⌫ '
 
     def create_export(self, button):
-        data = {'domains': {}, 'browsers': self.browsers, 'days': self.days, 'times': self.times}
+        data = {'domains': {}, 'browsers': self.browsers, 'days': self.days, 'times': self.times,
+                'participant_code': self.pseudonym.value}
         i = 0
         history = self.history
         for row in self.table.data:
@@ -250,8 +263,8 @@ class WebhistoPy(toga.App):
         return button
 
     def upload(self, button):
-        history_path = os.path.expanduser("~/Desktop/web_histopy_history.csv")
-        data_path = os.path.expanduser("~/Desktop/web_histopy_stats.yaml")
+        history_path = os.path.expanduser(f"~/Desktop/{self.pseudonym.value}_web_histopy_history.csv")
+        data_path = os.path.expanduser(f"~/Desktop/{self.pseudonym.value}_web_histopy_stats.yaml")
 
         self.history.to_csv(history_path,
                             header=['Zeit', 'Domain'], index=False)
