@@ -29,24 +29,6 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
-
-# config
-visits_limit = 10  # minimum visits for a domain not to be hidden
-time_limit = 7*12  # number of days to retrieve history for
-day_names = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-# Nextcloud drop folder link (use https for encrypted transit!)
-drop_link = 'https://'
-assert drop_link.startswith('https://')  # enforce encryption
-# config end
-
-day_map = dict()
-
-i = 0
-for day in day_names:
-    day_map[day] = i
-    i += 1
-    print(day_map)
-
 large_font = Pack(padding=10, font_weight='bold', font_size=15)
 large_font_flex = Pack(padding=10, font_size=15, flex=1)
 small_font_flex = Pack(padding=10, font_size=9, flex=1)
@@ -64,6 +46,28 @@ def get_domain(url):
 class WebhistoPy(toga.App):
 
     def startup(self):
+
+        # config
+
+        with open(self.paths.app / "config.yaml") as f:
+            config = yaml.safe_load(f)
+
+        self.visits_limit = config['visits_limit']  # minimum visits for a domain not to be hidden
+        self.time_limit = config['time_limit']  # number of days to retrieve history for
+        self.day_names = config['day_names']
+        # Nextcloud drop folder link (use https for encrypted transit!)
+        self.drop_link = config['drop_link']
+        assert self.drop_link.startswith('https://')  # enforce encryption
+        self.contact = config['contact']
+        # config end
+
+        self.day_map = dict()
+
+        i = 0
+        for day in self.day_names:
+            self.day_map[day] = i
+            i += 1
+            print(self.day_map)
 
         self.browsers = []
         self.days = []
@@ -146,7 +150,7 @@ class WebhistoPy(toga.App):
             style=large_font)
         self.left.add(select_day_text)
 
-        for day in day_names:
+        for day in self.day_names:
             self.left.add(day_switch(day))
 
         self.left.add(time_select('Beginn'))
@@ -182,10 +186,10 @@ class WebhistoPy(toga.App):
             on_press=self.show_histories
         ))
 
-        self.visit_limiter = visits_limit
+        self.visit_limiter = self.visits_limit
         limiter_label = toga.Label(
             textwrap.dedent(f'''
-            Nur Besuche der letzten {time_limit} Tage werden erfasst und
+            Nur Besuche der letzten {self.time_limit} Tage werden erfasst und
             Domains mit weniger als {self.visit_limiter} Besuchen
             sowie außerhalb der Arbeitszeiten werden verborgen.
             '''),
@@ -254,7 +258,7 @@ class WebhistoPy(toga.App):
         with open(data_path, 'w') as f:
             yaml.dump(self.data, f)
 
-        nc = nextcloud_client.Client.from_public_link(drop_link)
+        nc = nextcloud_client.Client.from_public_link(self.drop_link)
         nc.drop_file(history_path)
         nc.drop_file(data_path)
 
@@ -264,7 +268,8 @@ class WebhistoPy(toga.App):
                             Sie können das Programm jetzt schließen und deinstallieren.
                             Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht \
                             gespeichert.
-                            Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {contact} widersprechen.
+                            Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} \
+                            widersprechen.
                             """)
         )
 
@@ -346,9 +351,9 @@ class WebhistoPy(toga.App):
             df = pd.DataFrame(history)
 
             df = df[df[0].dt.tz_localize(None) > np.datetime64(
-                datetime.datetime.now() - pd.to_timedelta(f"{time_limit}days"))]  # limit to last x days
+                datetime.datetime.now() - pd.to_timedelta(f"{self.time_limit}days"))]  # limit to last x days
 
-            week_day_numbers = [day_map[day] for day in self.days]
+            week_day_numbers = [self.day_map[day] for day in self.days]
 
             print(self.days)
             print(week_day_numbers)

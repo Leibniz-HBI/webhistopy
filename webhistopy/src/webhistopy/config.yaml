@@ -1,0 +1,8 @@
+# Edit this config file according to your needs before packaging the app
+
+visits_limit: 10  # minimum visits for a domain not to be hidden
+time_limit: 84  # number of days to retrieve history for
+day_names: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+# Nextcloud drop folder link (you have to use https for encrypted transit, otherwise app won't work)
+drop_link: 'https://'
+contact: example@example.com # your contact details in case participants want to contact you
