@@ -11,9 +11,9 @@ The app enables participants of a study to provide a researcher with a retracted
 Participants can:
 
 1. provide a pseudonym (e.g. to link data with a survey)
-2. choose their typical working times to filter results down
+2. choose their typical working times to filter down results
 3. hide remaining domains that they want to stay private
-4. inspect the exact data before an upload
+4. inspect the data before upload
 5. receive a copy of their data on upload
 
 Researchers receive the data in form of a CSV and a YAML file in a [Nextcloud drop folder](https://nextcloud.com/file-drop/) of their choice.
