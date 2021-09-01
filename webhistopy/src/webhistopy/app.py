@@ -30,10 +30,10 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
-large_font = Pack(padding=5, font_weight='bold', font_size=11)
-large_font_flex = Pack(padding=5, font_size=11, flex=1)
-small_font_flex = Pack(padding=5, font_size=9, flex=1)
-switch_font = Pack(padding=3, padding_left=25, font_size=11)
+large_font = Pack(padding=5, font_weight='bold', font_size=10)
+large_font_flex = Pack(padding=5, font_weight='bold', font_size=10, flex=1)
+small_font_flex = Pack(padding=5, font_size=8, flex=1)
+switch_font = Pack(padding=3, padding_left=25, font_size=10)
 
 
 def get_domain(url):
@@ -125,7 +125,7 @@ class WebhistoPy(toga.App):
             return box
 
         self.main_window = toga.MainWindow(
-            size=(1200, 800), position=(100, 100),
+            size=(1350, 768), position=(50, 50),
             title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
@@ -213,15 +213,6 @@ class WebhistoPy(toga.App):
         self.main_window.content = self.main_box
         self.main_window.show()
 
-
-    def remove_row(self, table, row):
-        if row.hide == ' ⌫ ':
-            row.hide = row.domain
-            row.domain = '[verborgen]'
-        else:
-            row.domain = row.hide
-            row.hide = ' ⌫ '
-
     def create_export(self, button):
         data = {'domains': {}, 'browsers': self.browsers, 'days': self.days, 'times': self.times,
                 'participant_code': self.pseudonym.value}
@@ -282,9 +273,8 @@ class WebhistoPy(toga.App):
             'Vielen Dank für Ihre Teilnahme!',
             textwrap.dedent(f"""\
                             Sie können das Programm jetzt schließen und deinstallieren.
-                            Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht
-                            gespeichert. Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact}
-                            widersprechen.
+                            Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht gespeichert.
+                            Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} widersprechen.
                             """)
         )
 
@@ -302,7 +292,7 @@ class WebhistoPy(toga.App):
 
     def domain_switch(self, domain):
 
-        return toga.Switch(label=domain, on_toggle=self.toggle_domain)
+        return toga.Switch(label=domain, on_toggle=self.toggle_domain, style=switch_font)
 
     def domain_check_list(self, data):
         
@@ -417,7 +407,7 @@ class WebhistoPy(toga.App):
                         )
                 )
                 continue
-            
+
         self.history = output_df[[0, 'domain']].sort_values(0)
 
         top_domains = output_df.value_counts('domain')
