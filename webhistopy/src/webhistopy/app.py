@@ -15,6 +15,7 @@ import nextcloud_client
 import numpy as np
 import pandas as pd
 import toga
+from toga.widgets.scrollcontainer import ScrollContainer
 import yaml
 from browser_history.browsers import Safari
 from toga.style import Pack
@@ -72,6 +73,7 @@ class WebhistoPy(toga.App):
 
         self.browsers = []
         self.days = []
+        self.hidden_domains = []
         self.times = {}
         self.data = {}
 
@@ -123,7 +125,7 @@ class WebhistoPy(toga.App):
             return box
 
         self.main_window = toga.MainWindow(
-            size=(1180, 800), position=(100, 100),
+            size=(1200, 800), position=(100, 100),
             title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
@@ -211,6 +213,7 @@ class WebhistoPy(toga.App):
         self.main_window.content = self.main_box
         self.main_window.show()
 
+
     def remove_row(self, table, row):
         if row.hide == ' ⌫ ':
             row.hide = row.domain
@@ -224,16 +227,16 @@ class WebhistoPy(toga.App):
                 'participant_code': self.pseudonym.value}
         i = 0
         history = self.history
-        for row in self.table.data:
-            if row.domain == '[verborgen]':
+        for row in self.unmasked_data:
+            if row['domain'] in self.hidden_domains:
                 key = f'[verborgen_{i}]'
-                history['domain'].replace(to_replace=row.hide, value=f'[verborgen_{i}]', inplace=True)
+                history['domain'].replace(to_replace=row['domain'], value=f'[verborgen_{i}]', inplace=True)
                 i += 1
-            elif row.domain == '':
+            elif row['domain'] == '':
                 key = 'N/A'
             else:
-                key = str(row.domain)
-            data['domains'][key] = row.visits
+                key = str(row['domain'])
+            data['domains'][key] = row['visits']
 
         if button.id == "preview":
             try:
@@ -279,8 +282,8 @@ class WebhistoPy(toga.App):
             'Vielen Dank für Ihre Teilnahme!',
             textwrap.dedent(f"""\
                             Sie können das Programm jetzt schließen und deinstallieren.
-                            Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht \
-                            gespeichert. Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} \
+                            Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht
+                            gespeichert. Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact}
                             widersprechen.
                             """)
         )
@@ -288,6 +291,28 @@ class WebhistoPy(toga.App):
     def export_button(self):
         button = toga.Button('Upload', style=large_font, on_press=self.upload)
         return button
+
+    def toggle_domain(self, switch):
+            domain = switch.label
+            if domain not in self.hidden_domains:
+                self.hidden_domains.append(domain)
+            else:
+                self.hidden_domains.remove(domain)
+            print(self.hidden_domains)
+
+    def domain_switch(self, domain):
+
+        return toga.Switch(label=domain, on_toggle=self.toggle_domain)
+
+    def domain_check_list(self, data):
+        
+        check_list = toga.Box(style=Pack(direction=COLUMN))
+        
+        for item in data:
+            if item['domain'] != '[verborgen]':
+                check_list.add(self.domain_switch(item['domain']))
+
+        return toga.ScrollContainer(content=check_list, style=Pack(flex=1))
 
     def show_histories(self, button):
         if len(self.browsers) == 0:
@@ -301,15 +326,15 @@ class WebhistoPy(toga.App):
         except IndexError:
             pass
 
-        self.table = toga.Table(
-            ['domain', 'visits', 'hide'],
-            data=data, style=large_font_flex,
-            on_select=self.remove_row)
+        self.table_container.add(toga.Label(
+            'Welche Domains wollen Sie verbergen?',
+            style=large_font))
+
+        self.hidden_domains = []
+        self.table = self.domain_check_list(data)
 
         self.table_container.add(self.table)
-        self.table_container.add(toga.Label(
-            'Klicken um eine Seite zu verbergen.',
-            style=Pack(padding=10, font_weight='bold', font_size=14)))
+        
         self.table_container.add(self.preview_button())
 
     def get_histories(self, browsers):
@@ -405,10 +430,10 @@ class WebhistoPy(toga.App):
             top_df['domain'][top_df['visits'] <= self.visit_limiter])] = '[verborgen]'
 
         top_df['domain'][top_df['visits'] <= self.visit_limiter] = '[verborgen]'
-        top_df['hide'] = " ⌫ "
-        data = top_df.to_dict('records')
+        top_df['hide'] = False
+        self.unmasked_data = top_df.to_dict('records')
 
-        return data
+        return self.unmasked_data
 
 
 def main():
