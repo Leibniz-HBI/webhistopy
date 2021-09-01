@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 browser-history = "*"
 pandas = "*"
-toga = "*"
+toga = ">=0.3.0.dev27"
 pyyaml = "*"
 pyncclient = "*"
 

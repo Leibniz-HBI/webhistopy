@@ -29,9 +29,10 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
-large_font = Pack(padding=10, font_weight='bold', font_size=15)
-large_font_flex = Pack(padding=10, font_size=15, flex=1)
-small_font_flex = Pack(padding=10, font_size=9, flex=1)
+large_font = Pack(padding=5, font_weight='bold', font_size=11)
+large_font_flex = Pack(padding=5, font_size=11, flex=1)
+small_font_flex = Pack(padding=5, font_size=9, flex=1)
+switch_font = Pack(padding=3, padding_left=25, font_size=11)
 
 
 def get_domain(url):
@@ -86,7 +87,7 @@ class WebhistoPy(toga.App):
             return toga.Switch(
                 browser,
                 on_toggle=toggle_browser,
-                style=Pack(padding=5, padding_left=25, font_size=15)
+                style=switch_font
             )
 
         def toggle_day(switch):
@@ -100,7 +101,7 @@ class WebhistoPy(toga.App):
         def day_switch(day):
             return toga.Switch(
                 day, on_toggle=toggle_day,
-                style=Pack(padding=5, padding_left=25, font_size=15)
+                style=switch_font
             )
 
         def select_time(selection):
@@ -110,20 +111,19 @@ class WebhistoPy(toga.App):
         def time_select(name):
             box = toga.Box(style=Pack(direction=ROW))
             box.add(toga.Label(f'Üblicher {name} um ',
-                    style=Pack(padding=5, padding_left=25, font_size=15)),
+                    style=small_font_flex),
                     )
             box.add(toga.Selection(id=name,
                     items=[''] + [str(time) for time in range(24)],
                     on_select=select_time,
-                    style=Pack(padding=5, font_size=15)
+                    style=small_font_flex
                     ))
-            box.add(toga.Label(' Uhr.',  style=Pack(
-                padding=5, font_size=15)))
+            box.add(toga.Label(' Uhr.',  style=small_font_flex))
 
             return box
 
         self.main_window = toga.MainWindow(
-            size=(1180, 700), position=(100, 100),
+            size=(1180, 800), position=(100, 100),
             title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
@@ -205,7 +205,7 @@ class WebhistoPy(toga.App):
             Domains mit weniger als {self.visit_limiter} Besuchen
             sowie außerhalb der Arbeitszeiten werden verborgen.
             '''),
-            style=Pack(padding=10))
+            style=small_font_flex)
         self.left.add(limiter_label)
 
         self.main_window.content = self.main_box
@@ -280,8 +280,7 @@ class WebhistoPy(toga.App):
             textwrap.dedent(f"""\
                             Sie können das Programm jetzt schließen und deinstallieren.
                             Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht \
-                            gespeichert.
-                            Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} \
+                            gespeichert. Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} \
                             widersprechen.
                             """)
         )
