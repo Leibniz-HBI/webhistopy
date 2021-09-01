@@ -386,25 +386,26 @@ class WebhistoPy(toga.App):
             history = output.histories
 
             df = pd.DataFrame(history)
-
-            df = df[df[0].dt.tz_localize(None) > np.datetime64(
-                datetime.datetime.now() - pd.to_timedelta(f"{self.time_limit}days"))]  # limit to last x days
-
-            week_day_numbers = [self.day_map[day] for day in self.days]
-
-            print(self.days)
-            print(week_day_numbers)
-
-            df = df[df[0].dt.weekday.isin(week_day_numbers)]  # limit to work_days
-
-            df = df[df[0].dt.hour < int(self.times['Feierabend'])]
-            df = df[df[0].dt.hour > int(self.times['Beginn'])]  # limit to times
-
-            print(df)
-
+            
             try:
+                df = df[df[0].dt.tz_localize(None) > np.datetime64(
+                    datetime.datetime.now() - pd.to_timedelta(f"{self.time_limit}days"))]  # limit to last x days
+
+                week_day_numbers = [self.day_map[day] for day in self.days]
+
+                print(self.days)
+                print(week_day_numbers)
+
+                df = df[df[0].dt.weekday.isin(week_day_numbers)]  # limit to work_days
+
+                df = df[df[0].dt.hour < int(self.times['Feierabend'])]
+                df = df[df[0].dt.hour > int(self.times['Beginn'])]  # limit to times
+
+                print(df)
+
                 df['domain'] = df[1].apply(lambda url: get_domain(url))
                 output_df = output_df.append(df)
+
             except KeyError:
                 self.main_window.error_dialog(
                     'Keine Daten',
@@ -416,6 +417,7 @@ class WebhistoPy(toga.App):
                         )
                 )
                 continue
+            
         self.history = output_df[[0, 'domain']].sort_values(0)
 
         top_domains = output_df.value_counts('domain')
