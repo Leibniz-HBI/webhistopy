@@ -125,7 +125,7 @@ class WebhistoPy(toga.App):
             return box
 
         self.main_window = toga.MainWindow(
-            size=(1350, 768), position=(50, 50),
+            size=(1350, 768), position=(25, 25),
             title=self.formal_name)
 
         self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
@@ -252,7 +252,7 @@ class WebhistoPy(toga.App):
 
     def preview_button(self):
         button = toga.Button(
-            'Vorschau', id='preview', style=large_font,
+            'Weiter zur Vorschau', id='preview', style=large_font,
             on_press=self.create_export)
         return button
 
