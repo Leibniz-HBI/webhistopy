@@ -24,9 +24,7 @@ For impression purposes only. Might be outdated.
 
 ### macOS
 
-![image](https://user-images.githubusercontent.com/8951994/130818151-fd1935d6-bea1-4a28-923d-7c8c9cf8356c.png)
-
-
+![Screenshot 2021-09-02 at 16 44 53](https://user-images.githubusercontent.com/8951994/131865159-8679f689-e063-4af5-b990-a0ed18c04985.png)
 
 ### Windows
 
