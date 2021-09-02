@@ -5,6 +5,7 @@ Experimental reconceptualisation of Webhistorian in Python
 import datetime
 import os
 import subprocess
+import sys
 import textwrap
 import webbrowser
 from time import sleep
@@ -29,10 +30,17 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
-large_font = Pack(padding=5, font_weight='bold', font_size=11)
-large_font_flex = Pack(padding=5, font_size=11, flex=1)
-small_font_flex = Pack(padding=5, font_size=9, flex=1)
-switch_font = Pack(padding=3, padding_left=25, font_size=11)
+
+if sys.platform != 'darwin':
+    large_font = Pack(padding=5, font_weight='bold', font_size=10)
+    large_font_flex = Pack(padding=5, font_weight='bold', font_size=10, flex=1)
+    small_font_flex = Pack(padding=5, font_size=8, flex=1)
+    switch_font = Pack(padding=3, padding_left=25, font_size=10)
+else:
+    large_font = Pack(padding=5, font_weight='bold', font_size=16)
+    large_font_flex = Pack(padding=5, font_weight='bold', flex=1, font_size=16)
+    small_font_flex = Pack(padding=5, flex=1)
+    switch_font = Pack(padding=3, padding_left=25)
 
 
 def get_domain(url):
@@ -53,8 +61,10 @@ class WebhistoPy(toga.App):
         with open(self.paths.app / "config.yaml") as f:
             config = yaml.safe_load(f)
 
-        self.visits_limit = config['visits_limit']  # minimum visits for a domain not to be hidden
-        self.time_limit = config['time_limit']  # number of days to retrieve history for
+        # minimum visits for a domain not to be hidden
+        self.visits_limit = config['visits_limit']
+        # number of days to retrieve history for
+        self.time_limit = config['time_limit']
         self.day_names = config['day_names']
         # Nextcloud drop folder link (use https for encrypted transit!)
         self.drop_link = config['drop_link']
@@ -72,6 +82,7 @@ class WebhistoPy(toga.App):
 
         self.browsers = []
         self.days = []
+        self.hidden_domains = []
         self.times = {}
         self.data = {}
 
@@ -123,11 +134,11 @@ class WebhistoPy(toga.App):
             return box
 
         self.main_window = toga.MainWindow(
-            size=(1180, 800), position=(100, 100),
+            size=(1350, 768), position=(25, 25),
             title=self.formal_name)
 
-        self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
-        self.right = toga.Box(id='right', style=Pack(direction=ROW, flex=2))
+        self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1, padding=5))
+        self.right = toga.Box(id='right', style=Pack(direction=ROW, flex=2, padding=5))
 
         self.main_box = toga.Box()
 
@@ -142,7 +153,7 @@ class WebhistoPy(toga.App):
         self.pseudonym = toga.TextInput(
             placeholder='Bitte hier ihren persönlichen Code eintragen',
             style=large_font
-            )
+        )
 
         self.left.add(self.pseudonym)
 
@@ -168,9 +179,9 @@ class WebhistoPy(toga.App):
         self.left.add(time_select('Beginn'))
         self.left.add(time_select('Feierabend'))
 
-        self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1))
+        self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1, padding=10))
         self.right.add(self.table_container)
-        self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN))
+        self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN, padding=10))
         self.right.add(self.preview)
 
         '''
@@ -192,12 +203,6 @@ class WebhistoPy(toga.App):
         self.left.add(limiter_label_2)
         '''
 
-        self.left.add(toga.Button(
-            'Zeige besuchte Domains',
-            style=large_font,
-            on_press=self.show_histories
-        ))
-
         self.visit_limiter = self.visits_limit
         limiter_label = toga.Label(
             textwrap.dedent(f'''
@@ -208,32 +213,31 @@ class WebhistoPy(toga.App):
             style=small_font_flex)
         self.left.add(limiter_label)
 
+        self.left.add(toga.Button(
+            'Zeige besuchte Domains',
+            style=large_font,
+            on_press=self.show_histories
+        ))
+
         self.main_window.content = self.main_box
         self.main_window.show()
-
-    def remove_row(self, table, row):
-        if row.hide == ' ⌫ ':
-            row.hide = row.domain
-            row.domain = '[verborgen]'
-        else:
-            row.domain = row.hide
-            row.hide = ' ⌫ '
 
     def create_export(self, button):
         data = {'domains': {}, 'browsers': self.browsers, 'days': self.days, 'times': self.times,
                 'participant_code': self.pseudonym.value}
         i = 0
         history = self.history
-        for row in self.table.data:
-            if row.domain == '[verborgen]':
+        for row in self.unmasked_data:
+            if row['domain'] in self.hidden_domains:
                 key = f'[verborgen_{i}]'
-                history['domain'].replace(to_replace=row.hide, value=f'[verborgen_{i}]', inplace=True)
+                history['domain'].replace(
+                    to_replace=row['domain'], value=f'[verborgen_{i}]', inplace=True)
                 i += 1
-            elif row.domain == '':
+            elif row['domain'] == '':
                 key = 'N/A'
             else:
-                key = str(row.domain)
-            data['domains'][key] = row.visits
+                key = str(row['domain'])
+            data['domains'][key] = row['visits']
 
         if button.id == "preview":
             try:
@@ -250,7 +254,8 @@ class WebhistoPy(toga.App):
                 initial=history.to_string(index=False, header=['Zeit', 'Domain']), readonly=True,
                 style=small_font_flex
             ))
-            self.preview.add(toga.Label('Nur exakt diese Daten werden erfasst.'))
+            self.preview.add(toga.Label(
+                'Nur exakt diese Daten werden erfasst.'))
             self.preview.add(self.export_button())
             # self.preview.refresh()
 
@@ -258,13 +263,15 @@ class WebhistoPy(toga.App):
 
     def preview_button(self):
         button = toga.Button(
-            'Vorschau', id='preview', style=large_font,
+            'Weiter zur Vorschau', id='preview', style=large_font,
             on_press=self.create_export)
         return button
 
     def upload(self, button):
-        history_path = os.path.expanduser(f"~/Desktop/{self.pseudonym.value}_web_histopy_history.csv")
-        data_path = os.path.expanduser(f"~/Desktop/{self.pseudonym.value}_web_histopy_stats.yaml")
+        history_path = os.path.expanduser(
+            f"~/Desktop/{self.pseudonym.value}_web_histopy_history.csv")
+        data_path = os.path.expanduser(
+            f"~/Desktop/{self.pseudonym.value}_web_histopy_stats.yaml")
 
         self.history.to_csv(history_path,
                             header=['Zeit', 'Domain'], index=False)
@@ -277,21 +284,44 @@ class WebhistoPy(toga.App):
 
         self.main_window.info_dialog(
             'Vielen Dank für Ihre Teilnahme!',
-            textwrap.dedent(f"""\
-                            Sie können das Programm jetzt schließen und deinstallieren.
-                            Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht \
-                            gespeichert. Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} \
-                            widersprechen.
-                            """)
+            textwrap.dedent(
+                f"""\
+                Sie können das Programm jetzt schließen und deinstallieren.
+                Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht gespeichert.
+                Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} widersprechen.
+                """)
         )
 
     def export_button(self):
         button = toga.Button('Upload', style=large_font, on_press=self.upload)
         return button
 
+    def toggle_domain(self, switch):
+        domain = switch.label
+        if domain not in self.hidden_domains:
+            self.hidden_domains.append(domain)
+        else:
+            self.hidden_domains.remove(domain)
+        print(self.hidden_domains)
+
+    def domain_switch(self, domain):
+
+        return toga.Switch(label=domain, on_toggle=self.toggle_domain, style=switch_font)
+
+    def domain_check_list(self, data):
+
+        check_list = toga.Box(style=Pack(direction=COLUMN))
+
+        for item in data:
+            if item['domain'] != '[verborgen]':
+                check_list.add(self.domain_switch(item['domain']))
+
+        return toga.ScrollContainer(content=check_list, style=Pack(flex=1))
+
     def show_histories(self, button):
         if len(self.browsers) == 0:
-            self.main_window.error_dialog('Keine Auswahl', 'Bitte wählen Sie mindestens einen Browser.')
+            self.main_window.error_dialog(
+                'Keine Auswahl', 'Bitte wählen Sie mindestens einen Browser.')
             return 1
         data = self.get_histories(self.browsers)
 
@@ -301,15 +331,15 @@ class WebhistoPy(toga.App):
         except IndexError:
             pass
 
-        self.table = toga.Table(
-            ['domain', 'visits', 'hide'],
-            data=data, style=large_font_flex,
-            on_select=self.remove_row)
+        self.table_container.add(toga.Label(
+            'Welche Domains wollen Sie verbergen?',
+            style=large_font))
+
+        self.hidden_domains = []
+        self.table = self.domain_check_list(data)
 
         self.table_container.add(self.table)
-        self.table_container.add(toga.Label(
-            'Klicken um eine Seite zu verbergen.',
-            style=Pack(padding=10, font_weight='bold', font_size=14)))
+
         self.table_container.add(self.preview_button())
 
     def get_histories(self, browsers):
@@ -362,24 +392,27 @@ class WebhistoPy(toga.App):
 
             df = pd.DataFrame(history)
 
-            df = df[df[0].dt.tz_localize(None) > np.datetime64(
-                datetime.datetime.now() - pd.to_timedelta(f"{self.time_limit}days"))]  # limit to last x days
-
-            week_day_numbers = [self.day_map[day] for day in self.days]
-
-            print(self.days)
-            print(week_day_numbers)
-
-            df = df[df[0].dt.weekday.isin(week_day_numbers)]  # limit to work_days
-
-            df = df[df[0].dt.hour < int(self.times['Feierabend'])]
-            df = df[df[0].dt.hour > int(self.times['Beginn'])]  # limit to times
-
-            print(df)
-
             try:
+                df = df[df[0].dt.tz_localize(None) > np.datetime64(
+                    datetime.datetime.now() - pd.to_timedelta(f"{self.time_limit}days"))]  # limit to last x days
+
+                week_day_numbers = [self.day_map[day] for day in self.days]
+
+                print(self.days)
+                print(week_day_numbers)
+
+                # limit to work_days
+                df = df[df[0].dt.weekday.isin(week_day_numbers)]
+
+                df = df[df[0].dt.hour < int(self.times['Feierabend'])]
+                # limit to times
+                df = df[df[0].dt.hour > int(self.times['Beginn'])]
+
+                print(df)
+
                 df['domain'] = df[1].apply(lambda url: get_domain(url))
                 output_df = output_df.append(df)
+
             except KeyError:
                 self.main_window.error_dialog(
                     'Keine Daten',
@@ -388,9 +421,10 @@ class WebhistoPy(toga.App):
                         Keine Daten für {browser}. Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
                         kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser ab.
                         """
-                        )
+                    )
                 )
                 continue
+
         self.history = output_df[[0, 'domain']].sort_values(0)
 
         top_domains = output_df.value_counts('domain')
@@ -404,11 +438,12 @@ class WebhistoPy(toga.App):
         self.history['domain'][self.history['domain'].isin(
             top_df['domain'][top_df['visits'] <= self.visit_limiter])] = '[verborgen]'
 
-        top_df['domain'][top_df['visits'] <= self.visit_limiter] = '[verborgen]'
-        top_df['hide'] = " ⌫ "
-        data = top_df.to_dict('records')
+        top_df['domain'][top_df['visits'] <=
+                         self.visit_limiter] = '[verborgen]'
+        top_df['hide'] = False
+        self.unmasked_data = top_df.to_dict('records')
 
-        return data
+        return self.unmasked_data
 
 
 def main():
