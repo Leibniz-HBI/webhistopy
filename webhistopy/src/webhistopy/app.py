@@ -5,6 +5,7 @@ Experimental reconceptualisation of Webhistorian in Python
 import datetime
 import os
 import subprocess
+import sys
 import textwrap
 import webbrowser
 from time import sleep
@@ -29,10 +30,17 @@ def bar_plot_domains(topdomains, path=None):
     fig.savefig(path / 'figure.png', bbox_inches='tight')
 '''
 
-large_font = Pack(padding=5, font_weight='bold', font_size=10)
-large_font_flex = Pack(padding=5, font_weight='bold', font_size=10, flex=1)
-small_font_flex = Pack(padding=5, font_size=8, flex=1)
-switch_font = Pack(padding=3, padding_left=25, font_size=10)
+
+if sys.platform != 'darwin':
+    large_font = Pack(padding=5, font_weight='bold', font_size=10)
+    large_font_flex = Pack(padding=5, font_weight='bold', font_size=10, flex=1)
+    small_font_flex = Pack(padding=5, font_size=8, flex=1)
+    switch_font = Pack(padding=3, padding_left=25, font_size=10)
+else:
+    large_font = Pack(padding=5, font_weight='bold', font_size=16)
+    large_font_flex = Pack(padding=5, font_weight='bold', flex=1, font_size=16)
+    small_font_flex = Pack(padding=5, flex=1)
+    switch_font = Pack(padding=3, padding_left=25)
 
 
 def get_domain(url):
@@ -129,8 +137,8 @@ class WebhistoPy(toga.App):
             size=(1350, 768), position=(25, 25),
             title=self.formal_name)
 
-        self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1))
-        self.right = toga.Box(id='right', style=Pack(direction=ROW, flex=2))
+        self.left = toga.Box(id='left', style=Pack(direction=COLUMN, flex=1, padding=5))
+        self.right = toga.Box(id='right', style=Pack(direction=ROW, flex=2, padding=5))
 
         self.main_box = toga.Box()
 
@@ -171,9 +179,9 @@ class WebhistoPy(toga.App):
         self.left.add(time_select('Beginn'))
         self.left.add(time_select('Feierabend'))
 
-        self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1))
+        self.table_container = toga.Box(style=Pack(direction=COLUMN, flex=1, padding=10))
         self.right.add(self.table_container)
-        self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN))
+        self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN, padding=10))
         self.right.add(self.preview)
 
         '''
@@ -195,12 +203,6 @@ class WebhistoPy(toga.App):
         self.left.add(limiter_label_2)
         '''
 
-        self.left.add(toga.Button(
-            'Zeige besuchte Domains',
-            style=large_font,
-            on_press=self.show_histories
-        ))
-
         self.visit_limiter = self.visits_limit
         limiter_label = toga.Label(
             textwrap.dedent(f'''
@@ -210,6 +212,12 @@ class WebhistoPy(toga.App):
             '''),
             style=small_font_flex)
         self.left.add(limiter_label)
+
+        self.left.add(toga.Button(
+            'Zeige besuchte Domains',
+            style=large_font,
+            on_press=self.show_histories
+        ))
 
         self.main_window.content = self.main_box
         self.main_window.show()
