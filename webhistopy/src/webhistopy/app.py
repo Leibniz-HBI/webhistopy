@@ -15,7 +15,6 @@ import nextcloud_client
 import numpy as np
 import pandas as pd
 import toga
-from toga.widgets.scrollcontainer import ScrollContainer
 import yaml
 from browser_history.browsers import Safari
 from toga.style import Pack
@@ -277,11 +276,12 @@ class WebhistoPy(toga.App):
 
         self.main_window.info_dialog(
             'Vielen Dank für Ihre Teilnahme!',
-            textwrap.dedent(f"""\
-                            Sie können das Programm jetzt schließen und deinstallieren.
-                            Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht gespeichert.
-                            Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} widersprechen.
-                            """)
+            textwrap.dedent(
+                f"""\
+                Sie können das Programm jetzt schließen und deinstallieren.
+                Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht gespeichert.
+                Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} widersprechen.
+                """)
         )
 
     def export_button(self):
