@@ -1,6 +1,6 @@
 # WebHistoPy
 
-Experimental reconceptualisation of Webhistorian as an application written in Python. Right now just a feasibility check, so consider it pre-alpha.
+Experimental reconceptualisation of Webhistorian as an application written in Python.
 
 It can be adapted and build with the [Beeware framework](https://beeware.org/). Take their tutorial, which requires only basic Python skills, and you should be able to work on and with this project.
 
