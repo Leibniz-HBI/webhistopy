@@ -34,3 +34,16 @@ For impression purposes only. Might be outdated.
 ## Development
 
 All relevant code is in https://github.com/Leibniz-HBI/webhistopy/tree/main/webhistopy/src/webhistopy. The app can be configured to suit your needs in https://github.com/Leibniz-HBI/webhistopy/blob/main/webhistopy/src/webhistopy/config.yaml.
+
+### Environment Setup
+
+This project uses pipenv to manage dependencies. To install pipenv, follow the instructions at https://pipenv.pypa.io/en/latest/installation.html
+
+Then run pipenv shell to activate the virtual environment and install the dependencies:
+
+```bash
+pipenv shell
+pipenv install
+```
+
+This should reproduce the environment used to develop this project. To add or update/upgrade dependencies, follow pipenv's documentation.
