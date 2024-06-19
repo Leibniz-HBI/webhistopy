@@ -1,10 +1,10 @@
 # WebHistoPy
 
-Experimental reconceptualisation of Webhistorian as an application written in Python. Right now just a feasibility check, so consider it pre-alpha.
+Experimental reconceptualisation of Webhistorian as an application written in Python.
 
 It can be adapted and build with the [Beeware framework](https://beeware.org/). Take their tutorial, which requires only basic Python skills, and you should be able to work on and with this project.
 
-At the moment, the app has no localisation and labels and dialogues are in German as it is meant to be UX-tested with German participants.
+At the moment, the app has no localisation and labels and dialogues are in German as it was UX-tested with German participants. Feel free to contribute localisations.
 
 The app enables participants of a study to provide a researcher with a retracted version of their browsing history across several browsers.
 
