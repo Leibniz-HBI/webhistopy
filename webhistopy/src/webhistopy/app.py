@@ -37,8 +37,8 @@ if sys.platform != "darwin":
     small_font_flex = Pack(padding=5, font_size=8, flex=1)
     switch_font = Pack(padding=3, padding_left=25, font_size=10)
 else:
-    large_font = Pack(padding=5, font_weight="bold", font_size=16)
-    large_font_flex = Pack(padding=5, font_weight="bold", flex=1, font_size=16)
+    large_font = Pack(padding=5, font_weight="bold", font_size=10)
+    large_font_flex = Pack(padding=5, font_weight="bold", flex=1, font_size=10)
     small_font_flex = Pack(padding=5, flex=1)
     switch_font = Pack(padding=3, padding_left=25)
 
