@@ -1,54 +1,188 @@
+# This project was generated with 0.3.19 using template: https://github.com/beeware/briefcase-template@v0.3.19
 [tool.briefcase]
-project_name = "WebHistoPy"
-bundle = "de.leibniz-hbi.mrml"
-version = "0.2.0"
+project_name = "webhistopy"
+bundle = "net.felixvictor.webhistopy"
+version = "0.0.1"
 url = "https://github.com/Leibniz-HBI/webhistopy"
-license = "GNU General Public License v3 (GPLv3)"
-author = 'Felix Victor Münch'
+license.file = "LICENSE"
+author = "Felix Victor Münch"
 author_email = "f.muench@leibniz-hbi.de"
 
 [tool.briefcase.app.webhistopy]
-formal_name = "WebHistoPy"
-description = "Helps you to combine, analyse and export your webhistory from several browsers."
-icon = "src/webhistopy/resources/webhistopy"
-sources = ['src/webhistopy']
-requires = [
-    'pandas',
-    'browser-history',
-    'pyyaml',
-    'pyncclient'
+formal_name = "webhistopy"
+description = "Helps you to combine, analyse and export your webhistory from several browsers"
+long_description = """More details about the app should go here.
+"""
+sources = [
+    "src/webhistopy",
+]
+test_sources = [
+    "tests",
 ]
 
+requires = [
+    "pandas",
+    "numpy",
+    "browser-history",
+    
+]
+test_requires = [
+    "pytest",
+]
 
 [tool.briefcase.app.webhistopy.macOS]
+universal_build = true
 requires = [
-    'toga-cocoa>=0.3.0.dev27',
+    "toga-cocoa~=0.4.5",
+    "std-nslog~=1.0.0",
 ]
 
 [tool.briefcase.app.webhistopy.linux]
 requires = [
-    'toga-gtk>=0.3.0.dev27',
+    "toga-gtk~=0.4.5",
 ]
+
+[tool.briefcase.app.webhistopy.linux.system.debian]
 system_requires = [
-    'libgirepository1.0-dev',
-    'libcairo2-dev',
-    'libpango1.0-dev',
-    'libwebkitgtk-3.0-0',
-    'gir1.2-webkit-3.0',
+    # Needed to compile pycairo wheel
+    "libcairo2-dev",
+    # Needed to compile PyGObject wheel
+    "libgirepository1.0-dev",
 ]
+
+system_runtime_requires = [
+    # Needed to provide GTK and its GI bindings
+    "gir1.2-gtk-3.0",
+    "libgirepository-1.0-1",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra-gtk3-module",
+    # Needed to provide WebKit2 at runtime
+    # Note: Debian 11 and Ubuntu 20.04 require gir1.2-webkit2-4.0 instead
+    # "gir1.2-webkit2-4.1",
+]
+
+[tool.briefcase.app.webhistopy.linux.system.rhel]
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo-gobject-devel",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection-devel",
+]
+
+system_runtime_requires = [
+    # Needed to support Python bindings to GTK
+    "gobject-introspection",
+    # Needed to provide GTK
+    "gtk3",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra-gtk3",
+    # Needed to provide WebKit2 at runtime
+    # "webkit2gtk3",
+]
+
+[tool.briefcase.app.webhistopy.linux.system.suse]
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo-devel",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection-devel",
+]
+
+system_runtime_requires = [
+    # Needed to provide GTK
+    "gtk3",
+    # Needed to support Python bindings to GTK
+    "gobject-introspection", "typelib(Gtk) = 3.0",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra-gtk3-module",
+    # Needed to provide WebKit2 at runtime
+    # "libwebkit2gtk3", "typelib(WebKit2)",
+]
+
+[tool.briefcase.app.webhistopy.linux.system.arch]
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection",
+    # Runtime dependencies that need to exist so that the
+    # Arch package passes final validation.
+    # Needed to provide GTK
+    "gtk3",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra",
+    # Needed to provide WebKit2
+    # "webkit2gtk",
+]
+
+system_runtime_requires = [
+    # Needed to provide GTK
+    "gtk3",
+    # Needed to provide PyGObject bindings
+    "gobject-introspection-runtime",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra",
+    # Needed to provide WebKit2 at runtime
+    # "webkit2gtk",
+]
+
+[tool.briefcase.app.webhistopy.linux.appimage]
+manylinux = "manylinux_2_28"
+
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo-gobject-devel",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection-devel",
+    # Needed to provide GTK
+    "gtk3-devel",
+    # Dependencies that GTK looks for at runtime, that need to be
+    # in the build environment to be picked up by linuxdeploy
+    "libcanberra-gtk3",
+    "PackageKit-gtk3-module",
+    "gvfs-client",
+]
+
+linuxdeploy_plugins = [
+    "DEPLOY_GTK_VERSION=3 gtk",
+]
+
+[tool.briefcase.app.webhistopy.linux.flatpak]
+flatpak_runtime = "org.gnome.Platform"
+flatpak_runtime_version = "45"
+flatpak_sdk = "org.gnome.Sdk"
 
 [tool.briefcase.app.webhistopy.windows]
 requires = [
-    'toga-winforms>=0.3.0.dev27',
+    "toga-winforms~=0.4.5",
 ]
 
 # Mobile deployments
 [tool.briefcase.app.webhistopy.iOS]
 requires = [
-    'toga-iOS>=0.3.0.dev27',
+    "toga-iOS~=0.4.5",
+    "std-nslog~=1.0.0",
 ]
 
 [tool.briefcase.app.webhistopy.android]
 requires = [
-    'toga-android>=0.3.0.dev27',
+    "toga-android~=0.4.5",
 ]
+
+base_theme = "Theme.MaterialComponents.Light.DarkActionBar"
+
+build_gradle_dependencies = [
+    "com.google.android.material:material:1.11.0",
+    # Needed for DetailedList
+    # "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0",
+    # Needed for MapView
+    # "org.osmdroid:osmdroid-android:6.1.0",
+]
+
+# Web deployments
+[tool.briefcase.app.webhistopy.web]
+requires = [
+    "toga-web~=0.4.5",
+]
+style_framework = "Shoelace v2.3"
+

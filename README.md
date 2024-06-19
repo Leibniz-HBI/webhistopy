@@ -43,7 +43,7 @@ Then run pipenv shell to activate the virtual environment and install the depend
 
 ```bash
 pipenv shell
-pipenv install
+pipenv install --dev
 ```
 
 This should reproduce the environment used to develop this project. To add or update/upgrade dependencies, follow pipenv's documentation.

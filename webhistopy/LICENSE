@@ -1,10 +1,10 @@
-
-WebHistoPy: Helps you to combine, analyse and export your webhistory from several browsers.
-Copyright (C) 2021  Felix Victor Münch
+webhistopy: Helps you to combine, analyse and export your webhistory from several browsers
+Copyright (C) 2024  Felix Victor Münch
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of version 3 of the GNU General Public License as
-published by the Free Software Foundation.
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

@@ -4,20 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+briefcase = "*"
 browser-history = "*"
+numpy = "*"
 pandas = "*"
-toga = "*"
-pyyaml = "*"
-pyncclient = "*"
 
 [dev-packages]
-briefcase = "*"
-flake8 = "*"
-autopep8 = "*"
-isort = "*"
 
 [requires]
-python_version = "3.8"
-
-[pipenv]
-allow_prereleases = true
+python_version = "3.12"
