@@ -8,6 +8,8 @@ import subprocess
 import sys
 import textwrap
 import webbrowser
+
+from pathlib import Path
 from time import sleep
 from urllib.parse import urlparse
 
@@ -20,6 +22,8 @@ import yaml
 from browser_history.browsers import Safari
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
+
+from webhistopy.browser_viz import beehive
 
 """
 def bar_plot_domains(topdomains, path=None):
@@ -288,6 +292,8 @@ class WebhistoPy(toga.App):
         self.history.to_csv(history_path, header=["Zeit", "Domain"], index=False)
         with open(data_path, "w") as f:
             yaml.dump(self.data, f)
+
+        beehive.main()
 
         # nc = nextcloud_client.Client.from_public_link(self.drop_link)
         # nc.drop_file(history_path)

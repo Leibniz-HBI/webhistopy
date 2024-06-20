@@ -8,6 +8,12 @@ briefcase = "*"
 browser-history = "*"
 numpy = "*"
 pandas = "*"
+plotly = "*"
+scikit-learn = "*"
+polars = "*"
+matplotlib = "*"
+pyarrow = "*"
+seaborn = "*"
 
 [dev-packages]
 

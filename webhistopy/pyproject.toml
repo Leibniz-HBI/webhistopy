@@ -11,8 +11,9 @@ author_email = "f.muench@leibniz-hbi.de"
 [tool.briefcase.app.webhistopy]
 formal_name = "webhistopy"
 description = "Helps you to combine, analyse and export your webhistory from several browsers"
-long_description = """More details about the app should go here.
+long_description = """
 """
+icon = "src/webhistopy/resources/webhistopy"
 sources = [
     "src/webhistopy",
 ]
@@ -24,7 +25,13 @@ requires = [
     "pandas",
     "numpy",
     "browser-history",
-    "pyyaml"
+    "pyyaml",
+    "plotly",
+    "scikit-learn",
+    "polars",
+    "matplotlib",
+    "pyarrow",
+    "seaborn",
 ]
 test_requires = [
     "pytest",
