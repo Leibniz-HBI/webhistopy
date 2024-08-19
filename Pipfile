@@ -8,6 +8,7 @@ briefcase = "*"
 browser-history = "*"
 numpy = "*"
 pandas = "*"
+toga = "*"
 
 [dev-packages]
 
