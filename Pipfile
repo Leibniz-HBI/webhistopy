@@ -14,6 +14,7 @@ polars = "*"
 matplotlib = "*"
 pyarrow = "*"
 seaborn = "*"
+toga = "*"
 
 [dev-packages]
 
