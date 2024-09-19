@@ -32,6 +32,8 @@ requires = [
     "matplotlib",
     "pyarrow",
     "seaborn",
+    "networkx",
+    "pyvis",
 ]
 test_requires = [
     "pytest",
