@@ -60,6 +60,12 @@ else:
     switch_font = Pack(padding=0, padding_left=25, font_size=8)
 
 
+labels = []
+labels.append(["English","Create a Webhistopy file","Visualize existing Webhistopy file","Languages","Menu"])
+labels.append(["Deutsch","Webhistopy-Datei erstellen","Webhistopy-Datei visualisieren","Sprachen","Menu"])
+print(labels[1][1])
+current_lang = 0
+
 def get_domain(url):
     t = urlparse(url).netloc
     full = t.split(".")
@@ -159,7 +165,7 @@ class WebhistoPy(toga.App):
         test_text = toga.Label("Hello, this is a test", style=large_font)
         self.menu.add(test_text)
         self.menu.add(
-            toga.Button("Create a Webhistopy file", style=large_font, on_press=self.toscreen2))
+            toga.Button(labels[current_lang][1], style=large_font, on_press=self.toscreen2))
         self.menu.add(
             toga.Button("Visualize existing Webhistopy file", style=large_font, on_press=self.toscreen3))
         self.menu.add(
