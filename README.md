@@ -44,6 +44,7 @@ Then run pipenv shell to activate the virtual environment and install the depend
 ```bash
 pipenv shell
 pipenv install --dev
+cd webhistopy
 briefcase create
 ```
 
