@@ -300,7 +300,7 @@ class WebhistoPy(toga.App):
         grouped = grouped[grouped['weight'] >= 2]
         grouped['source'] = grouped['source'].str.replace('verborgen_', '')
         grouped['target'] = grouped['target'].str.replace('verborgen_', '')
-        f = grouped
+        f.close()
 
         domain_net = Network(height='1080px', width='100%', notebook=False, directed=True)
         
