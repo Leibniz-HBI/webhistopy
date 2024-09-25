@@ -26,14 +26,12 @@ from browser_history.browsers import Safari
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
 
-from webhistopy.browser_viz import beehive
-#from webhistopy.visuals import visuals
+# from webhistopy.browser_viz import beehive
+# from webhistopy.visuals import visuals
 
 import pandas as pd
-from glob import glob
 import matplotlib.pyplot as plt
 import toga
-import math
 
 
 cwd = os.getcwd()

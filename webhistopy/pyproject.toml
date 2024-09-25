@@ -25,13 +25,7 @@ requires = [
     "pandas",
     "numpy",
     "browser-history",
-    "pyyaml",
-    "plotly",
-    "scikit-learn",
-    "polars",
     "matplotlib",
-    "pyarrow",
-    "seaborn",
     "networkx",
     "pyvis",
 ]
