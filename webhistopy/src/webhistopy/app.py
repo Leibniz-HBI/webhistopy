@@ -60,10 +60,14 @@ else:
     switch_font = Pack(padding=0, padding_left=25, font_size=8)
 
 
+#this list of lists stores button labels, texts etc in different languages. 
+#get a string by using labels[id of language][id of string]
 labels = []
-labels.append(["English","Create a Webhistopy file","Visualize existing Webhistopy file","Languages","Menu"])
+#English (0)
+labels.append(["English","Create a Webhistopy file","Visualize existing Webhistopy file","Languages","Back to Menu"])
+#German (1) (work in progress)
 labels.append(["Deutsch","Webhistopy-Datei erstellen","Webhistopy-Datei visualisieren","Sprachen","Menu"])
-print(labels[1][1])
+#set default language (English in this case)
 current_lang = 0
 
 def get_domain(url):
@@ -162,15 +166,14 @@ class WebhistoPy(toga.App):
         
         # SCREEN 1: (choose between creating browser history and visualization)
         self.menu = toga.Box(id="menu", style=Pack(direction=COLUMN, flex=1, padding=5))
-        test_text = toga.Label("Hello, this is a test", style=large_font)
-        self.menu.add(test_text)
         self.menu.add(
             toga.Button(labels[current_lang][1], style=large_font, on_press=self.toscreen2))
         self.menu.add(
-            toga.Button("Visualize existing Webhistopy file", style=large_font, on_press=self.toscreen3))
-        self.menu.add(
+            toga.Button(labels[current_lang][2], style=large_font, on_press=self.toscreen3))
+        #Language menu (wip)
+        """self.menu.add(
             toga.Button("Languages", style=large_font, on_press=self.languages)
-        )
+        )"""
         self.main_window.content = self.menu
         self.main_window.size = (500,500)
 
@@ -186,7 +189,7 @@ class WebhistoPy(toga.App):
         scroll_container = toga.ScrollContainer(content=self.screen2, vertical=True)
 
         self.left.add(
-            toga.Button("Back to menu", style=large_font, on_press=self.tomenu)
+            toga.Button(labels[current_lang][4], style=large_font, on_press=self.tomenu)
         )
 
         pseudonym_text = toga.Label("Wie lautet Ihr Teilnahme-Code?", style=large_font)
@@ -252,28 +255,23 @@ class WebhistoPy(toga.App):
     async def selectfile(self,widget):
         filechoice = self.main_window.open_file_dialog("Choose a file", initial_directory=None, file_types=['csv'], multiple_select=False)
         self.csv_path = await filechoice
-        #add actual visualize button
-        self.visualization.add(
-            toga.Button("Show top 30 domains", style=large_font, on_press=self.top30)
-        )
-        self.visualization.add(
-            toga.Button("Create networks", style=large_font, on_press=self.create_networks)
-        )
-        """self.visualization.add(
-            toga.Button("Visualize networks", style=large_font, on_press=self.vis_networks)
-        )"""
         
     #show top 30 domains
     def top30(self,button):
-        f = open(self.csv_path,'r')
-        history = pd.read_csv(f)
-        result = history.groupby('Domain').count()
-        result.sort_values('Zeit',inplace=True,ascending=True)
-        result.columns = ['visits']
-        data = result.tail(30)
-        finishedplot = data.plot(kind='barh', title="test",ylabel='visits', figsize=(7,10))
-        plt.show()
-        f.close()
+        if self.csv_path == "":
+            print("select file first")
+        else:
+            f = open(self.csv_path,'r')
+            history = pd.read_csv(f)
+            result = history.groupby('Domain').count()
+            result.sort_values('Zeit',inplace=True,ascending=True)
+            result.columns = ['visits']
+            data = result.tail(30)
+            finishedplot = data.plot(kind='barh', title="test",ylabel='visits', figsize=(7,10))
+            home = expanduser("~")
+            path = Path(home).joinpath("Desktop","web_histopy_top30.svg")
+            plt.savefig(path)
+            f.close()
     
     def create_networks(self,button):
         max_timedelta = 600 # maximum time between visits to count as an edge in seconds
@@ -359,7 +357,8 @@ class WebhistoPy(toga.App):
         )
 
         #print(domain_net)
-        domain_net.show(str(Path(home).joinpath("Desktop","web_history_graph.html")),notebook=False)
+        #domain_net.show(str(Path(home).joinpath("Desktop","web_history_graph.html")),notebook=False)
+        domain_net.save_graph(str(Path(home).joinpath("Desktop","web_history_graph.html")))
 
         
         """#an example graph for testing
@@ -377,9 +376,16 @@ class WebhistoPy(toga.App):
     def viswindow(self):
         self.visualization = toga.Box(id="visualization", style=Pack(direction=COLUMN, flex=1, padding=5))
         self.visualization.add(
-            toga.Button("Back to menu", style=large_font, on_press=self.tomenu))
+            toga.Button(labels[current_lang][4], style=large_font, on_press=self.tomenu))
         self.visualization.add(
             toga.Button("Choose a Webhistopy file to visualize", style=large_font, on_press=self.selectfile))
+        #add actual visualize button
+        self.visualization.add(
+            toga.Button("Show top 30 domains", style=large_font, on_press=self.top30)
+        )
+        self.visualization.add(
+            toga.Button("Create networks", style=large_font, on_press=self.create_networks)
+        )
         self.main_window.content = self.visualization
 
     def toscreen2(self,button):
@@ -389,9 +395,6 @@ class WebhistoPy(toga.App):
     def toscreen3(self,button):
         self.main_window.size = (500,500)
         self.viswindow()
-    
-    def languages(self,button):
-        print("We are still working on this, sorry!")
     
     def tomenu(self,button):
         self.main_window.size = (500,500)
