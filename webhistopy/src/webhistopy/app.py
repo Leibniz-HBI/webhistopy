@@ -26,14 +26,12 @@ from browser_history.browsers import Safari
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
 
-from webhistopy.browser_viz import beehive
-#from webhistopy.visuals import visuals
+# from webhistopy.browser_viz import beehive
+# from webhistopy.visuals import visuals
 
 import pandas as pd
-from glob import glob
 import matplotlib.pyplot as plt
 import toga
-import math
 
 
 cwd = os.getcwd()
@@ -258,9 +256,7 @@ class WebhistoPy(toga.App):
         
     #show top 30 domains
     def top30(self,button):
-        if self.csv_path == "":
-            print("select file first")
-        else:
+        try:
             f = open(self.csv_path,'r')
             history = pd.read_csv(f)
             result = history.groupby('Domain').count()
@@ -272,11 +268,17 @@ class WebhistoPy(toga.App):
             path = Path(home).joinpath("Desktop","web_histopy_top30.svg")
             plt.savefig(path)
             f.close()
+        except AttributeError:
+            print("select file first")
     
     def create_networks(self,button):
         max_timedelta = 600 # maximum time between visits to count as an edge in seconds
         edge_list = pd.DataFrame(columns=['source', 'target', 'timestamp', 'timedelta'])
-        f = open(self.csv_path, 'r')
+        try:
+            f = open(self.csv_path, 'r')
+        except AttributeError:
+            print("select file first")
+            return 1 # exit function if no file is selected
         history = pd.read_csv(f, parse_dates=['Zeit'])
         df = history.sort_values(by='Zeit')
         i = 0
@@ -304,9 +306,10 @@ class WebhistoPy(toga.App):
         grouped = grouped[grouped['weight'] >= 2]
         grouped['source'] = grouped['source'].str.replace('verborgen_', '')
         grouped['target'] = grouped['target'].str.replace('verborgen_', '')
+        f.close()
         f = grouped
 
-        domain_net = Network(height='1080px', width='100%', notebook=False, directed=True)
+        domain_net = Network(height='1080px', width='100%', notebook=False, directed=True, cdn_resources="in_line")
         
         # set the physics layout of the network
         # domain_net.barnes_hut()

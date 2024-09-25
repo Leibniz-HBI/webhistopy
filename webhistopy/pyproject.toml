@@ -2,7 +2,7 @@
 [tool.briefcase]
 project_name = "webhistopy"
 bundle = "net.felixvictor.webhistopy"
-version = "0.0.1"
+version = "0.1.0"
 url = "https://github.com/Leibniz-HBI/webhistopy"
 license.file = "LICENSE"
 author = "Felix Victor Münch"
@@ -25,13 +25,7 @@ requires = [
     "pandas",
     "numpy",
     "browser-history",
-    "pyyaml",
-    "plotly",
-    "scikit-learn",
-    "polars",
     "matplotlib",
-    "pyarrow",
-    "seaborn",
     "networkx",
     "pyvis",
 ]
