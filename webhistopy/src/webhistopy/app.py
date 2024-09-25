@@ -311,7 +311,7 @@ class WebhistoPy(toga.App):
         f.close()
         f = grouped
 
-        domain_net = Network(height='1080px', width='100%', notebook=False, directed=True)
+        domain_net = Network(height='1080px', width='100%', notebook=False, directed=True, cdn_resources="in_line")
         
         # set the physics layout of the network
         # domain_net.barnes_hut()
