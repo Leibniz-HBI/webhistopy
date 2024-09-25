@@ -319,6 +319,8 @@ class WebhistoPy(toga.App):
             network.nodes[node]['title'] = str()
             network.nodes[node]['size'] = 200 * (network.out_degree(node, weight='weight') + 1) / network.size(weight='weight')
         
+        nx.write_gexf(network, Path(home).joinpath("Desktop","web_histopy_network.gexf"))
+
         domain_net.from_nx(network, node_size_transf= lambda x: x,edge_scaling=True)
         neighbor_map = domain_net.get_adj_list()
         
