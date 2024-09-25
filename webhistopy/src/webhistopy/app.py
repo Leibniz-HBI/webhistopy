@@ -258,9 +258,7 @@ class WebhistoPy(toga.App):
         
     #show top 30 domains
     def top30(self,button):
-        if self.csv_path == "":
-            print("select file first")
-        else:
+        try:
             f = open(self.csv_path,'r')
             history = pd.read_csv(f)
             result = history.groupby('Domain').count()
@@ -272,11 +270,17 @@ class WebhistoPy(toga.App):
             path = Path(home).joinpath("Desktop","web_histopy_top30.svg")
             plt.savefig(path)
             f.close()
+        except AttributeError:
+            print("select file first")
     
     def create_networks(self,button):
         max_timedelta = 600 # maximum time between visits to count as an edge in seconds
         edge_list = pd.DataFrame(columns=['source', 'target', 'timestamp', 'timedelta'])
-        f = open(self.csv_path, 'r')
+        try:
+            f = open(self.csv_path, 'r')
+        except AttributeError:
+            print("select file first")
+            return 1 # exit function if no file is selected
         history = pd.read_csv(f, parse_dates=['Zeit'])
         df = history.sort_values(by='Zeit')
         i = 0
