@@ -60,6 +60,12 @@ else:
     switch_font = Pack(padding=0, padding_left=25, font_size=8)
 
 
+labels = []
+labels.append(["English","Create a Webhistopy file","Visualize existing Webhistopy file","Languages","Menu"])
+labels.append(["Deutsch","Webhistopy-Datei erstellen","Webhistopy-Datei visualisieren","Sprachen","Menu"])
+print(labels[1][1])
+current_lang = 0
+
 def get_domain(url):
     t = urlparse(url).netloc
     full = t.split(".")
@@ -159,7 +165,7 @@ class WebhistoPy(toga.App):
         test_text = toga.Label("Hello, this is a test", style=large_font)
         self.menu.add(test_text)
         self.menu.add(
-            toga.Button("Create a Webhistopy file", style=large_font, on_press=self.toscreen2))
+            toga.Button(labels[current_lang][1], style=large_font, on_press=self.toscreen2))
         self.menu.add(
             toga.Button("Visualize existing Webhistopy file", style=large_font, on_press=self.toscreen3))
         self.menu.add(
@@ -313,17 +319,12 @@ class WebhistoPy(toga.App):
             network.nodes[node]['title'] = str()
             network.nodes[node]['size'] = 200 * (network.out_degree(node, weight='weight') + 1) / network.size(weight='weight')
         
-        domain_net.from_nx(network, node_size_transf= lambda x: x)
+        domain_net.from_nx(network, node_size_transf= lambda x: x,edge_scaling=True)
         neighbor_map = domain_net.get_adj_list()
         
         # add neighbor data to node hover data
         for node in domain_net.nodes:
             node['title'] += ' Neighbors:<br>' + '<br>'.join(neighbor_map[node['id']])
-        
-        # TO DO: fix "weight" issue (KeyError: 'weight')
-        """for edge in domain_net.edges:
-            #edge['value'] = edge['weight']
-            print(edge)"""
         
         # domain_net.show_buttons(filter_='edges')
         
