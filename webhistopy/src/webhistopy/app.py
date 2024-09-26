@@ -58,7 +58,7 @@ else:
     switch_font = Pack(padding=0, padding_left=25, font_size=8)
 
 
-#this list of lists stores button labels, texts etc in different languages. 
+#this is an unfinished list of lists supposed to store button labels, texts etc in different languages. 
 #get a string by using labels[id of language][id of string]
 labels = []
 #English (0)
@@ -141,7 +141,7 @@ class WebhistoPy(toga.App):
         def time_select(name):
             box = toga.Box(style=Pack(direction=ROW))
             box.add(
-                toga.Label(f"Üblicher {name} um ", style=small_font_flex),
+                toga.Label(f"Work usually {name} at ", style=small_font_flex),
             )
             box.add(
                 toga.Selection(
@@ -151,7 +151,7 @@ class WebhistoPy(toga.App):
                     style=small_font_flex,
                 )
             )
-            box.add(toga.Label(" Uhr.", style=small_font_flex))
+            box.add(toga.Label(" o'clock.", style=small_font_flex))
 
             return box
 
@@ -190,17 +190,17 @@ class WebhistoPy(toga.App):
             toga.Button(labels[current_lang][4], style=large_font, on_press=self.tomenu)
         )
 
-        pseudonym_text = toga.Label("Wie lautet Ihr Teilnahme-Code?", style=large_font)
+        pseudonym_text = toga.Label("What is your unique participation code?", style=large_font)
         self.left.add(pseudonym_text)
 
         self.pseudonym = toga.TextInput(
-            placeholder="Bitte hier Ihren persönlichen Code eintragen", style=large_font
+            placeholder="Please enter your code here", style=large_font
         )
 
         self.left.add(self.pseudonym)
 
         select_browser_text = toga.Label(
-            "Welche Browser verwenden Sie beruflich?", style=large_font
+            "Which browser(s) do you use for work?", style=large_font
         )
         self.left.add(select_browser_text)
 
@@ -208,18 +208,18 @@ class WebhistoPy(toga.App):
         browser_list = [browser.__name__ for browser in supported_browsers]
 
         for browser in browser_list:
-            self.left.add(browser_switch(browser))#figure out how to access a method within startup
+            self.left.add(browser_switch(browser))
 
         select_day_text = toga.Label(
-            "An welchen Tagen arbeiten Sie üblicherweise?", style=large_font
+            "What days do you usually work?", style=large_font
         )
         self.left.add(select_day_text)
 
         for day in self.day_names:
             self.left.add(day_switch(day))
 
-        self.left.add(time_select("Beginn"))
-        self.left.add(time_select("Feierabend"))
+        self.left.add(time_select("starts"))
+        self.left.add(time_select("ends"))
 
         self.table_container = toga.Box(
             style=Pack(direction=COLUMN, flex=1, padding=10)
@@ -232,9 +232,9 @@ class WebhistoPy(toga.App):
         limiter_label = toga.Label(
             textwrap.dedent(
                 f"""
-            Nur Besuche der letzten {self.time_limit} Tage werden erfasst und
-            Domains mit weniger als {self.visit_limiter} Besuchen
-            sowie außerhalb der Arbeitszeiten werden verborgen.
+            Only visits during the last {self.time_limit} days will 
+            be registered. Domains with less than {self.visit_limiter} visits
+            as well as domains visited outside of work hours will be hidden.
             """
             ),
             style=small_font_flex,
@@ -243,7 +243,7 @@ class WebhistoPy(toga.App):
 
         self.left.add(
             toga.Button(
-                "Zeige besuchte Domains", style=large_font, on_press=self.show_histories
+                "Show visited domains", style=large_font, on_press=self.show_histories
             ))
 
         self.screen2 = scroll_container
@@ -267,6 +267,7 @@ class WebhistoPy(toga.App):
             home = expanduser("~")
             path = Path(home).joinpath("Desktop","web_histopy_top30.svg")
             plt.savefig(path)
+            nx.write_gexf(plt, str(Path(home).joinpath("Desktop","web_histopy_top30.gexf")))
             f.close()
         except AttributeError:
             print("select file first")
@@ -358,20 +359,9 @@ class WebhistoPy(toga.App):
         """
         )
 
-        #print(domain_net)
         #domain_net.show(str(Path(home).joinpath("Desktop","web_history_graph.html")),notebook=False)
         domain_net.save_graph(str(Path(home).joinpath("Desktop","web_history_graph.html")))
-
-        
-        """#an example graph for testing
-        G=nx.Graph()
-        G.add_edge('1',"2")
-        G.add_edge('2','3')
-        nx.draw(G,with_labels=True)
-        nt = Network('500px','500px')
-        nt.from_nx(G)
-        nt.show(str(Path(home).joinpath("Desktop","nx.html")),notebook=False)
-        print("done")"""
+        nx.write_gexf(network,str(Path(home).joinpath("Desktop","web_history_graph.gexf")))
         
 
     #set up window and buttons
@@ -445,7 +435,7 @@ class WebhistoPy(toga.App):
                     style=small_font_flex,
                 )
             )
-            self.preview.add(toga.Label("Nur exakt diese Daten werden erfasst."))
+            self.preview.add(toga.Label("Only exactly this data will be saved."))
             self.preview.add(self.export_button())
             # self.preview.refresh()
 
@@ -453,7 +443,7 @@ class WebhistoPy(toga.App):
 
     def preview_button(self):
         button = toga.Button(
-            "Weiter zur Vorschau",
+            "Preview",
             id="preview",
             style=large_font,
             on_press=self.create_export,
@@ -462,31 +452,18 @@ class WebhistoPy(toga.App):
 
     def upload(self, button):
         home = expanduser("~")
-        history_path = Path(home).joinpath("Desktop","web_histopy_history.csv")
-        data_path = Path(home).joinpath("Desktop","web_histopy_stats.yaml")
-        #history_path = os.path.expanduser(
-            #f"~/Desktop/{self.pseudonym.value}_web_histopy_history.csv"
-
-        #)
-        #data_path = os.path.expanduser(
-            #f"~/Desktop/{self.pseudonym.value}_web_histopy_stats.yaml"
-        #)
+        history_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_history.csv")
+        data_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_stats.yaml")
 
         self.history.to_csv(history_path, header=["Zeit", "Domain"], index=False)
         with open(data_path, "w") as f:
             yaml.dump(self.data, f)
 
-        # nc = nextcloud_client.Client.from_public_link(self.drop_link)
-        # nc.drop_file(history_path)
-        # nc.drop_file(data_path)
-
         self.main_window.info_dialog(
-            "Vielen Dank für Ihre Teilnahme!",
+            "Successfully created Webhistopy file",
             textwrap.dedent(
                 f"""\
-                Sie können das Programm jetzt schließen und deinstallieren.
-                Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht gespeichert.
-                Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} widersprechen.
+                The Webhistopy file has been created and saved to your desktop.
                 """
             ),
         )
@@ -520,7 +497,7 @@ class WebhistoPy(toga.App):
     def show_histories(self, button):
         if len(self.browsers) == 0:
             self.main_window.error_dialog(
-                "Keine Auswahl", "Bitte wählen Sie mindestens einen Browser."
+                "No selection", "Please select at least one browser."
             )
             return 1
         data = self.get_histories(self.browsers)
@@ -532,7 +509,7 @@ class WebhistoPy(toga.App):
             pass
 
         self.table_container.add(
-            toga.Label("Welche Domains wollen Sie verbergen?", style=large_font)
+            toga.Label("Please select any domains you want to hide.", style=large_font)
         )
 
         self.hidden_domains = []
@@ -552,12 +529,13 @@ class WebhistoPy(toga.App):
                 b = Browser()
             except TypeError:
                 self.main_window.error_dialog(
-                    "Nicht unterstützt",
+                    "Not supported",
                     textwrap.dedent(
                         f"""\
-                        {browser} ist leider nicht unterstützt auf ihrem Betriebssystem.
-                        Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
-                        kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser bitte ab.
+                        {browser} is not supported by your operating system.
+                        If you do have this browser installed and regularly use it, \
+                        please contact the developers. Otherwise, please deselect the browser.
+
                         """
                     ),
                 )
@@ -576,17 +554,18 @@ class WebhistoPy(toga.App):
                         "Moin!",
                         textwrap.dedent(
                             """\
+                            Due to privacy reasons we need your permission to evaluate your Safari data.
+                            Please change to the window which has just opened and follow the following steps:
+
+                            1. Click the lock and enter your system password.
+                            2. Select "full data access" in the menu on the left.
                             Aus Privatsphäre-Gründen benötigen wir Ihre Erlaubnis, Safari-Daten auszuwerten.
+                            3. Pull your Webhistopy App from your "Apps" folder into the list on the right side.
+                            4. Restart the app.
 
-                            Wechseln Sie bitte ins soeben geöffnete Einstellungsfenster und
-                            1. klicken Sie auf das Schloss und geben ihr System-Passwort ein.
-                            2. wählen Sie "Vollständiger Datenzugriff" im Menü links.
-                            3. ziehen Sie die Webhistopy App aus ihrem "Anwendungen"-Ordner in die Liste \
-                                auf der rechten Seite.
-                            4. starten Sie die App erneut.
+                            You will have the option to revise all of your data before it is saved.
 
-                            Sie haben die Möglichkeit, alle Daten vor Upload zu bereinigen.
-                            Herzlichen Dank!"""
+                            Thanks a lot!"""
                         ),
                     )
                     raise
@@ -612,9 +591,9 @@ class WebhistoPy(toga.App):
                 # limit to work_days
                 df = df[df[0].dt.weekday.isin(week_day_numbers)]
 
-                df = df[df[0].dt.hour < int(self.times["Feierabend"])]
+                df = df[df[0].dt.hour < int(self.times["ends"])]
                 # limit to times
-                df = df[df[0].dt.hour > int(self.times["Beginn"])]
+                df = df[df[0].dt.hour > int(self.times["starts"])]
 
                 print(df)
 
@@ -623,11 +602,12 @@ class WebhistoPy(toga.App):
 
             except KeyError:
                 self.main_window.error_dialog(
-                    "Keine Daten",
+                    "No data",
                     textwrap.dedent(
                         f"""\
-                        Keine Daten für {browser}. Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
-                        kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser ab.
+                        No data found for {browser}. 
+                        If you do have this browser installed and regularly use it, \
+                        please contact the developers. Otherwise, please deselect the browser.
                         """
                     ),
                 )
