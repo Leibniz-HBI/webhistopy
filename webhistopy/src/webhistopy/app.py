@@ -279,7 +279,7 @@ class WebhistoPy(toga.App):
             home = expanduser("~")
             #plt.savefig(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.svg"))
             plt.savefig(self.folderpath.joinpath(str(self.prefix.value)+"web_histopy_top_30.svg"))
-            nx.write_gexf(plt, self.folderpath.joinpath(str(self.prefix.value)+"web_histopy_top_30.gexf"))
+            #nx.write_gexf(plt, self.folderpath.joinpath(str(self.prefix.value)+"web_histopy_top_30.gexf"))
             f.close()
         except AttributeError:
             print("select file first")
