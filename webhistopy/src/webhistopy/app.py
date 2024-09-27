@@ -31,6 +31,8 @@ from toga.style.pack import COLUMN, ROW
 
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
 import toga
 
 
@@ -209,6 +211,11 @@ class WebhistoPy(toga.App):
 
         for browser in browser_list:
             self.left.add(browser_switch(browser))
+        
+        weeks_text = toga.Label("How many days into the past do you want Webhistopy to check?",style=large_font)
+        self.left.add(weeks_text)
+        self.weeks = toga.NumberInput(min_value=7, max_value=105, step=7)
+        self.left.add(self.weeks)
 
         select_day_text = toga.Label(
             "What days do you usually work?", style=large_font
@@ -232,7 +239,7 @@ class WebhistoPy(toga.App):
         limiter_label = toga.Label(
             textwrap.dedent(
                 f"""
-            Only visits during the last {self.time_limit} days will 
+            Only visits during your selected time period will 
             be registered. Domains with less than {self.visit_limiter} visits
             as well as domains visited outside of work hours will be hidden.
             """
@@ -260,14 +267,13 @@ class WebhistoPy(toga.App):
             f = open(self.csv_path,'r')
             history = pd.read_csv(f)
             result = history.groupby('Domain').count()
-            result.sort_values('Zeit',inplace=True,ascending=True)
+            result.sort_values('Time',inplace=True,ascending=True)
             result.columns = ['visits']
             data = result.tail(30)
-            finishedplot = data.plot(kind='barh', title="test",ylabel='visits', figsize=(7,10))
+            finishedplot = data.plot(kind='barh', title=str(self.prefix.value) + " top 30",ylabel='visits', figsize=(10,10))
             home = expanduser("~")
-            path = Path(home).joinpath("Desktop","web_histopy_top30.svg")
-            plt.savefig(path)
-            nx.write_gexf(plt, str(Path(home).joinpath("Desktop","web_histopy_top30.gexf")))
+            plt.savefig(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.svg"))
+            nx.write_gexf(plt, str(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.gexf")))
             f.close()
         except AttributeError:
             print("select file first")
@@ -280,33 +286,33 @@ class WebhistoPy(toga.App):
         except AttributeError:
             print("select file first")
             return 1 # exit function if no file is selected
-        history = pd.read_csv(f, parse_dates=['Zeit'])
-        df = history.sort_values(by='Zeit')
+        history = pd.read_csv(f, parse_dates=['Time'])
+        df = history.sort_values(by='Time')
         i = 0
         previous = None
         for row in df.iterrows():
             if previous is not None:
-                if row[1]['Zeit'] - previous[1]['Zeit'] > pd.Timedelta(0, 's') and row[1]['Zeit'] - previous[1]['Zeit'] < pd.Timedelta(max_timedelta, 's'):
-                    edge = (previous[1]['Domain'], row[1]['Domain'], row[1]['Zeit'], (row[1]['Zeit'] - previous[1]['Zeit']).seconds)
+                if row[1]['Time'] - previous[1]['Time'] > pd.Timedelta(0, 's') and row[1]['Time'] - previous[1]['Time'] < pd.Timedelta(max_timedelta, 's'):
+                    edge = (previous[1]['Domain'], row[1]['Domain'], row[1]['Time'], (row[1]['Time'] - previous[1]['Time']).seconds)
                     edge_list.loc[len(edge_list)] = edge
             previous = row
         home = expanduser("~")
-        edge_path = Path(home).joinpath("Desktop","web_histopy_edge_list.csv")
+        edge_path = Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_histopy_edge_list.csv")
         edge_list.to_csv(edge_path, index=False)
         print(f'finished edge list for selected file')
         f.close()
         f = open(edge_path, 'r')
         multi_network = pd.read_csv(f)
         # delete catch all rows for sites visited less than x times
-        multi_network = multi_network[multi_network['source'] != '[verborgen]']
-        multi_network = multi_network[multi_network['target'] != '[verborgen]']
+        multi_network = multi_network[multi_network['source'] != '[hidden]']
+        multi_network = multi_network[multi_network['target'] != '[hidden]']
         multi_network = multi_network[multi_network['timedelta'] <= 300]  # only include edges with timedelta under 5 minutes
         multi_network = multi_network[multi_network['source'] != multi_network['target']]  # remove self-loops
         grouped = multi_network.groupby(['source', 'target'], as_index=False).count()[['source','target','timestamp']]
         grouped.columns = ['source', 'target', 'weight']
         grouped = grouped[grouped['weight'] >= 2]
-        grouped['source'] = grouped['source'].str.replace('verborgen_', '')
-        grouped['target'] = grouped['target'].str.replace('verborgen_', '')
+        grouped['source'] = grouped['source'].str.replace('hidden', '')
+        grouped['target'] = grouped['target'].str.replace('hidden', '')
         f.close()
         f = grouped
 
@@ -360,8 +366,8 @@ class WebhistoPy(toga.App):
         )
 
         #domain_net.show(str(Path(home).joinpath("Desktop","web_history_graph.html")),notebook=False)
-        domain_net.save_graph(str(Path(home).joinpath("Desktop","web_history_graph.html")))
-        nx.write_gexf(network,str(Path(home).joinpath("Desktop","web_history_graph.gexf")))
+        domain_net.save_graph(str(Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_history_graph.html")))
+        nx.write_gexf(network,str(Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_history_graph.gexf")))
         
 
     #set up window and buttons
@@ -369,15 +375,32 @@ class WebhistoPy(toga.App):
         self.visualization = toga.Box(id="visualization", style=Pack(direction=COLUMN, flex=1, padding=5))
         self.visualization.add(
             toga.Button(labels[current_lang][4], style=large_font, on_press=self.tomenu))
+
+        #self.file_text = toga.Label("Select a Webhistopy file to visualize.", style=large_font)
+        #self.visualization.add(self.file_text)
         self.visualization.add(
-            toga.Button("Choose a Webhistopy file to visualize", style=large_font, on_press=self.selectfile))
-        #add actual visualize button
+            toga.Button("Select Webhistopy file to visualize", style=large_font, on_press=self.selectfile))
+        
+        #self.prefix_text = toga.Label("Add an optional prefix to your output files' names.", style=large_font)
+        #self.visualization.add(self.prefix_text)
+        self.prefix = toga.TextInput(
+            placeholder="Optional output file prefix", style=large_font
+        )
+        self.visualization.add(self.prefix)
+        
+        #.top30_text = toga.Label("Generate a bar diagram with your top 30 domains and save it to your desktop as both a .svg and a .gexf file.", style=large_font)
+        #self.visualization.add(self.top30_text)
         self.visualization.add(
             toga.Button("Show top 30 domains", style=large_font, on_press=self.top30)
         )
+
+        
+        #self.weightednetwork_text = toga.Label("Generate a weighted network and save it to your desktop as both a .html and a .gexf file.", style=large_font)
+        #self.visualization.add(self.weightednetwork_text)
         self.visualization.add(
-            toga.Button("Create networks", style=large_font, on_press=self.create_networks)
+            toga.Button("Create weighted network", style=large_font, on_press=self.create_networks)
         )
+
         self.main_window.content = self.visualization
 
     def toscreen2(self,button):
@@ -405,9 +428,9 @@ class WebhistoPy(toga.App):
         history = self.history
         for row in self.unmasked_data:
             if row["domain"] in self.hidden_domains:
-                key = f"[verborgen_{i}]"
+                key = f"[hidden_{i}]"
                 history["domain"].replace(
-                    to_replace=row["domain"], value=f"[verborgen_{i}]", inplace=True
+                    to_replace=row["domain"], value=f"[hidden_{i}]", inplace=True
                 )
                 i += 1
             elif row["domain"] == "":
@@ -430,7 +453,7 @@ class WebhistoPy(toga.App):
 
             self.preview.add(
                 toga.MultilineTextInput(
-                    value=history.to_string(index=False, header=["Zeit", "Domain"]),
+                    value=history.to_string(index=False, header=["Time", "Domain"]),
                     readonly=True,
                     style=small_font_flex,
                 )
@@ -455,7 +478,7 @@ class WebhistoPy(toga.App):
         history_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_history.csv")
         data_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_stats.yaml")
 
-        self.history.to_csv(history_path, header=["Zeit", "Domain"], index=False)
+        self.history.to_csv(history_path, header=["Time", "Domain"], index=False)
         with open(data_path, "w") as f:
             yaml.dump(self.data, f)
 
@@ -489,7 +512,7 @@ class WebhistoPy(toga.App):
         check_list = toga.Box(style=Pack(direction=COLUMN))
 
         for item in data:
-            if item["domain"] != "[verborgen]":
+            if item["domain"] != "[hidden]":
                 check_list.add(self.domain_switch(item["domain"]))
 
         return toga.ScrollContainer(content=check_list, style=Pack(flex=1))
@@ -520,7 +543,7 @@ class WebhistoPy(toga.App):
         self.table_container.add(self.preview_button())
 
     def get_histories(self, browsers):
-
+        self.time_limit = self.weeks.value
         output_df = pd.DataFrame(columns=["domain", "visits"])
 
         for browser in browsers:
@@ -627,9 +650,9 @@ class WebhistoPy(toga.App):
             self.history["domain"].isin(
                 top_df["domain"][top_df["visits"] <= self.visit_limiter]
             )
-        ] = "[verborgen]"
+        ] = "[hidden]"
 
-        top_df["domain"][top_df["visits"] <= self.visit_limiter] = "[verborgen]"
+        top_df["domain"][top_df["visits"] <= self.visit_limiter] = "[hidden]"
         top_df["hide"] = False
         self.unmasked_data = top_df.to_dict("records")
 
