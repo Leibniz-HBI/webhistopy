@@ -28,7 +28,6 @@ requires = [
     "matplotlib",
     "networkx",
     "pyvis",
-    "pyyaml",
 ]
 test_requires = [
     "pytest",

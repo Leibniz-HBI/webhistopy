@@ -260,12 +260,7 @@ class WebhistoPy(toga.App):
     async def selectfile(self,widget):
         filechoice = self.main_window.open_file_dialog("Choose a file", initial_directory=None, file_types=['csv'], multiple_select=False)
         self.csv_path = await filechoice
-    
-    #selecting a folder to save files in
-    async def selectfolder(self,widget):
-        folderchoice = self.main_window.select_folder_dialog("Choose a folder to save your files in", initial_directory=None, multiple_select=False, on_result=None, multiselect=None)
-        self.folderpath = await folderchoice
-
+        
     #show top 30 domains
     def top30(self,button):
         try:
@@ -277,9 +272,8 @@ class WebhistoPy(toga.App):
             data = result.tail(30)
             finishedplot = data.plot(kind='barh', title=str(self.prefix.value) + " top 30",ylabel='visits', figsize=(10,10))
             home = expanduser("~")
-            #plt.savefig(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.svg"))
-            plt.savefig(self.folderpath.joinpath(str(self.prefix.value)+"web_histopy_top_30.svg"))
-            nx.write_gexf(plt, self.folderpath.joinpath(str(self.prefix.value)+"web_histopy_top_30.gexf"))
+            plt.savefig(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.svg"))
+            nx.write_gexf(plt, str(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.gexf")))
             f.close()
         except AttributeError:
             print("select file first")
@@ -372,9 +366,8 @@ class WebhistoPy(toga.App):
         )
 
         #domain_net.show(str(Path(home).joinpath("Desktop","web_history_graph.html")),notebook=False)
-        #domain_net.save_graph(self.folderpath.joinpath(str(self.prefix.value)+"_web_history_graph.html"))
-        #nx.write_gexf(plt, self.folderpath.joinpath(str(self.prefix.value)+"_web_history_graph.gexf"))
-        nx.write_gexf(plt, self.folderpath.joinpath(str(self.prefix.value)+"web_histopy_top_30.gexf"))
+        domain_net.save_graph(str(Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_history_graph.html")))
+        nx.write_gexf(network,str(Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_history_graph.gexf")))
         
 
     #set up window and buttons
@@ -387,11 +380,6 @@ class WebhistoPy(toga.App):
         #self.visualization.add(self.file_text)
         self.visualization.add(
             toga.Button("Select Webhistopy file to visualize", style=large_font, on_press=self.selectfile))
-        
-        #choose a folder to save your files to
-        self.visualization.add(
-            toga.Button("Select a folder to save your files too", style=large_font, on_press=self.selectfolder)
-        )
         
         #self.prefix_text = toga.Label("Add an optional prefix to your output files' names.", style=large_font)
         #self.visualization.add(self.prefix_text)
@@ -485,11 +473,10 @@ class WebhistoPy(toga.App):
         )
         return button
 
-    async def upload(self,button):
-        folderchoice = self.main_window.select_folder_dialog("Choose a folder to save your files in", initial_directory=None, multiple_select=False, on_result=None, multiselect=None)
-        self.folderpath = await folderchoice
-        history_path = self.folderpath.joinpath(str(self.pseudonym.value)+"_web_histopy_history.csv")
-        data_path = self.folderpath.joinpath(str(self.pseudonym.value)+"_web_histopy_stats.yaml")
+    def upload(self, button):
+        home = expanduser("~")
+        history_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_history.csv")
+        data_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_stats.yaml")
 
         self.history.to_csv(history_path, header=["Time", "Domain"], index=False)
         with open(data_path, "w") as f:
@@ -503,24 +490,6 @@ class WebhistoPy(toga.App):
                 """
             ),
         )
-
-    """def upload(self, button):
-        home = expanduser("~")
-        history_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_history.csv")
-        data_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_stats.yaml")
-
-        self.history.to_csv(history_path, header=["Time", "Domain"], index=False)
-        with open(data_path, "w") as f:
-            yaml.dump(self.data, f)
-
-        self.main_window.info_dialog(
-            "Successfully created Webhistopy file",
-            textwrap.dedent(
-                f""""""\
-                The Webhistopy file has been created and saved to your desktop.
-                """"""
-            ),
-        )"""
 
     def export_button(self):
         button = toga.Button("Save to Desktop", style=large_font, on_press=self.upload)
