@@ -4,7 +4,7 @@ Experimental reconceptualisation of Webhistorian as an application written in Py
 
 It can be adapted and build with the [Beeware framework](https://beeware.org/). Take their tutorial, which requires only basic Python skills, and you should be able to work on and with this project.
 
-At the moment, the app has no localisation and labels and dialogues are in German as it was UX-tested with German participants. Feel free to contribute localisations.
+At the moment, the app has no localisations and labels and dialogues are in English. Feel free to contribute localisations.
 
 The app enables participants of a study to provide a researcher with a retracted version of their browsing history across several browsers.
 
@@ -22,7 +22,9 @@ Users receive the data in form of a CSV and a YAML file on their Desktop which c
 
 Installers for macOS and Windows can be found under [Releases](https://github.com/Leibniz-HBI/webhistopy/releases).
 
-Please raise an issue if you need help with creating a Linux installer.
+But please be aware that the software will most likely be outdated without a recent update of the code and dependencies, which means, e.g., that it might misread the respective browser databases.
+
+Please raise an issue if you need help with updating the code or creating a Linux installer.
 
 ## Screenshots
 
