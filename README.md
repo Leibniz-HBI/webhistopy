@@ -59,3 +59,10 @@ briefcase create
 ```
 
 This should reproduce the environment used to develop this project. To add or update/upgrade dependencies, follow pipenv's documentation.
+
+# Citation
+
+If using code from this repo or the tool itself for a publication, please cite the tool itself or the paper it was developed for:
+
+Merten, L., & Münch, F. V.,  Schuster, M. (2024). I really thought I would use more than just Google: Investigating professional journalistic online use with browser history donations. Computational Communication Research, 6(2), 1. [https://www.aup-online.com/content/journals/10.5117/CCR2024.2.7.MERT](https://www.aup-online.com/content/journals/10.5117/CCR2024.2.7.MERT)
+
