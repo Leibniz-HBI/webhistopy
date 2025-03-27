@@ -11,7 +11,7 @@ The app enables participants of a study to provide a researcher with a retracted
 Participants can:
 
 1. provide a pseudonym (e.g. to link data with a survey)
-2. choose their typical working times to filter down results
+2. choose browsing times and days of interest to filter down results
 3. hide remaining domains that they want to stay private
 4. inspect the data before upload
 5. create some rudimentary visualisations (bar chart and network visualisation) of their data (saved as files on their desktop)
