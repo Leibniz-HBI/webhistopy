@@ -22,7 +22,9 @@ Users receive the data in form of a CSV and a YAML file on their Desktop which c
 
 Installers for macOS and Windows can be found under [Releases](https://github.com/Leibniz-HBI/webhistopy/releases).
 
-But please be aware that the software will most likely be outdated without a recent update of the code and dependencies, which means, e.g., that it might misread the respective browser databases.
+But please be aware that the software is experimental and will most likely be outdated without a recent update of the code and dependencies, which means, e.g., that it might misread the respective browser databases.
+
+Please be aware of known issues in [Issues](https://github.com/Leibniz-HBI/webhistopy/issues) and verify results before using the app for research purposes.
 
 Please raise an issue if you need help with updating the code or creating a Linux installer.
 
