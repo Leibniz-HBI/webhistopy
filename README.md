@@ -4,7 +4,7 @@ Experimental reconceptualisation of Webhistorian as an application written in Py
 
 It can be adapted and build with the [Beeware framework](https://beeware.org/). Take their tutorial, which requires only basic Python skills, and you should be able to work on and with this project.
 
-At the moment, the app has no localisations and labels and dialogues are in English. Feel free to contribute localisations.
+At the moment, the app has no localisations and labels and dialogues are in English (screenshots in German are outdated). Feel free to contribute localisations.
 
 The app enables participants of a study to provide a researcher with a retracted version of their browsing history across several browsers.
 
@@ -14,7 +14,7 @@ Participants can:
 2. choose their typical working times to filter down results
 3. hide remaining domains that they want to stay private
 4. inspect the data before upload
-5. see some rudimentary visualisations of their data.
+5. create some rudimentary visualisations (bar chart and network visualisation) of their data (saved as files on their desktop)
 
 Users receive the data in form of a CSV and a YAML file on their Desktop which can be sent to the researchers.
 
@@ -33,6 +33,8 @@ For impression purposes only. Might be outdated.
 ### macOS
 
 ![Screenshot 2021-09-02 at 16 44 53](https://user-images.githubusercontent.com/8951994/131865159-8679f689-e063-4af5-b990-a0ed18c04985.png)
+
+![image](https://github.com/user-attachments/assets/99caf989-1461-41b1-ae43-9eb89db2719f)
 
 ### Windows
 
