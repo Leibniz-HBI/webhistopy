@@ -14,9 +14,16 @@ Participants can:
 2. choose their typical working times to filter down results
 3. hide remaining domains that they want to stay private
 4. inspect the data before upload
-5. receive a copy of their data on upload
+5. see some rudimentary visualisations of their data.
+6. receive a copy of their data on upload
 
-Researchers receive the data in form of a CSV and a YAML file in a [Nextcloud drop folder](https://nextcloud.com/file-drop/) of their choice.
+Users receive the data in form of a CSV and a YAML file on their Desktop which can be sent to the researchers.
+
+## Installation for Users
+
+Installers for macOS and Windows can be found under [Releases](https://github.com/Leibniz-HBI/webhistopy/releases).
+
+Please raise an issue if you need help with creating a Linux installer.
 
 ## Screenshots
 
