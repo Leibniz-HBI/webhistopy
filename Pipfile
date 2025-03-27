@@ -8,6 +8,9 @@ briefcase = "*"
 browser-history = "*"
 numpy = "*"
 pandas = "*"
+matplotlib = "*"
+networkx = "*"
+pyvis = "*"
 toga = "*"
 
 [dev-packages]

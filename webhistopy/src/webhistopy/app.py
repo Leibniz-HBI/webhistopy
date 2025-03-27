@@ -8,18 +8,35 @@ import subprocess
 import sys
 import textwrap
 import webbrowser
+
+from pathlib import Path
 from time import sleep
 from urllib.parse import urlparse
+from os.path import expanduser
 
 import browser_history
 # import nextcloud_client
 import numpy as np
 import pandas as pd
+import networkx as nx
 import toga
 import yaml
+from pyvis.network import Network
 from browser_history.browsers import Safari
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
+
+# from webhistopy.browser_viz import beehive
+# from webhistopy.visuals import visuals
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
+import toga
+
+
+cwd = os.getcwd()
 
 """
 def bar_plot_domains(topdomains, path=None):
@@ -37,11 +54,21 @@ if sys.platform != "darwin":
     small_font_flex = Pack(padding=5, font_size=8, flex=1)
     switch_font = Pack(padding=3, padding_left=25, font_size=10)
 else:
-    large_font = Pack(padding=5, font_weight="bold", font_size=16)
-    large_font_flex = Pack(padding=5, font_weight="bold", flex=1, font_size=16)
-    small_font_flex = Pack(padding=5, flex=1)
-    switch_font = Pack(padding=3, padding_left=25)
+    large_font = Pack(padding=4, font_weight="bold", font_size=9)
+    large_font_flex = Pack(padding=4, font_weight="bold", flex=1, font_size=9)
+    small_font_flex = Pack(padding=4, flex=1)
+    switch_font = Pack(padding=0, padding_left=25, font_size=8)
 
+
+#this is an unfinished list of lists supposed to store button labels, texts etc in different languages. 
+#get a string by using labels[id of language][id of string]
+labels = []
+#English (0)
+labels.append(["English","Create a Webhistopy file","Visualize existing Webhistopy file","Languages","Back to Menu"])
+#German (1) (work in progress)
+labels.append(["Deutsch","Webhistopy-Datei erstellen","Webhistopy-Datei visualisieren","Sprachen","Menu"])
+#set default language (English in this case)
+current_lang = 0
 
 def get_domain(url):
     t = urlparse(url).netloc
@@ -85,6 +112,7 @@ class WebhistoPy(toga.App):
         self.hidden_domains = []
         self.times = {}
         self.data = {}
+        csv_path = ""
 
         def toggle_browser(switch):
             browser = switch.text
@@ -115,7 +143,7 @@ class WebhistoPy(toga.App):
         def time_select(name):
             box = toga.Box(style=Pack(direction=ROW))
             box.add(
-                toga.Label(f"Üblicher {name} um ", style=small_font_flex),
+                toga.Label(f"Work usually {name} at ", style=small_font_flex),
             )
             box.add(
                 toga.Selection(
@@ -125,33 +153,56 @@ class WebhistoPy(toga.App):
                     style=small_font_flex,
                 )
             )
-            box.add(toga.Label(" Uhr.", style=small_font_flex))
+            box.add(toga.Label(" o'clock.", style=small_font_flex))
 
             return box
+
+        #setting up main window
 
         self.main_window = toga.MainWindow(
             size=(1350, 768), position=(25, 25), title=self.formal_name
         )
+        self.main_window.show()
+        
+        # SCREEN 1: (choose between creating browser history and visualization)
+        self.menu = toga.Box(id="menu", style=Pack(direction=COLUMN, flex=1, padding=5))
+        self.menu.add(
+            toga.Button(labels[current_lang][1], style=large_font, on_press=self.toscreen2))
+        self.menu.add(
+            toga.Button(labels[current_lang][2], style=large_font, on_press=self.toscreen3))
+        #Language menu (wip)
+        """self.menu.add(
+            toga.Button("Languages", style=large_font, on_press=self.languages)
+        )"""
+        self.main_window.content = self.menu
+        self.main_window.size = (500,500)
+
+        # SCREEN 2: (creating browser history)
 
         self.left = toga.Box(id="left", style=Pack(direction=COLUMN, flex=1, padding=5))
         self.right = toga.Box(id="right", style=Pack(direction=ROW, flex=2, padding=5))
 
-        self.main_box = toga.Box()
+        self.screen2 = toga.Box()
 
-        self.main_box.add(self.left)
-        self.main_box.add(self.right)
+        self.screen2.add(self.left)
+        self.screen2.add(self.right)
+        scroll_container = toga.ScrollContainer(content=self.screen2, vertical=True)
 
-        pseudonym_text = toga.Label("Wie lautet Ihr Teilnahme-Code?", style=large_font)
+        self.left.add(
+            toga.Button(labels[current_lang][4], style=large_font, on_press=self.tomenu)
+        )
+
+        pseudonym_text = toga.Label("What is your unique participation code?", style=large_font)
         self.left.add(pseudonym_text)
 
         self.pseudonym = toga.TextInput(
-            placeholder="Bitte hier ihren persönlichen Code eintragen", style=large_font
+            placeholder="Please enter your code here", style=large_font
         )
 
         self.left.add(self.pseudonym)
 
         select_browser_text = toga.Label(
-            "Welche Browser verwenden Sie beruflich?", style=large_font
+            "Which browser(s) do you use for work?", style=large_font
         )
         self.left.add(select_browser_text)
 
@@ -160,17 +211,22 @@ class WebhistoPy(toga.App):
 
         for browser in browser_list:
             self.left.add(browser_switch(browser))
+        
+        weeks_text = toga.Label("How many days into the past do you want Webhistopy to check?",style=large_font)
+        self.left.add(weeks_text)
+        self.weeks = toga.NumberInput(min_value=7, max_value=105, step=7)
+        self.left.add(self.weeks)
 
         select_day_text = toga.Label(
-            "An welchen Tagen arbeiten Sie üblicherweise?", style=large_font
+            "What days do you usually work?", style=large_font
         )
         self.left.add(select_day_text)
 
         for day in self.day_names:
             self.left.add(day_switch(day))
 
-        self.left.add(time_select("Beginn"))
-        self.left.add(time_select("Feierabend"))
+        self.left.add(time_select("starts"))
+        self.left.add(time_select("ends"))
 
         self.table_container = toga.Box(
             style=Pack(direction=COLUMN, flex=1, padding=10)
@@ -179,32 +235,13 @@ class WebhistoPy(toga.App):
         self.preview = toga.Box(style=Pack(flex=1, direction=COLUMN, padding=10))
         self.right.add(self.preview)
 
-        """
-        limiter_label = toga.Label(
-            'Verberge alle Seiten mit weniger als',
-            style=large_font)
-        self.visit_limiter = toga.NumberInput(
-            min_value=0,
-            max_value=500,
-            default=10,
-            step=10,
-            style=large_font
-            )
-        limiter_label_2 = toga.Label(
-            'Besuchen.',
-            style=large_font)
-        self.left.add(limiter_label)
-        self.left.add(self.visit_limiter)
-        self.left.add(limiter_label_2)
-        """
-
         self.visit_limiter = self.visits_limit
         limiter_label = toga.Label(
             textwrap.dedent(
                 f"""
-            Nur Besuche der letzten {self.time_limit} Tage werden erfasst und
-            Domains mit weniger als {self.visit_limiter} Besuchen
-            sowie außerhalb der Arbeitszeiten werden verborgen.
+            Only visits during your selected time period will 
+            be registered. Domains with less than {self.visit_limiter} visits
+            as well as domains visited outside of work hours will be hidden.
             """
             ),
             style=small_font_flex,
@@ -213,12 +250,171 @@ class WebhistoPy(toga.App):
 
         self.left.add(
             toga.Button(
-                "Zeige besuchte Domains", style=large_font, on_press=self.show_histories
-            )
+                "Show visited domains", style=large_font, on_press=self.show_histories
+            ))
+
+        self.screen2 = scroll_container
+    
+    # #SCREEN 3: visualization
+    #file explorer
+    async def selectfile(self,widget):
+        filechoice = self.main_window.open_file_dialog("Choose a file", initial_directory=None, file_types=['csv'], multiple_select=False)
+        self.csv_path = await filechoice
+        
+    #show top 30 domains
+    def top30(self,button):
+        try:
+            f = open(self.csv_path,'r')
+            history = pd.read_csv(f)
+            result = history.groupby('Domain').count()
+            result.sort_values('Time',inplace=True,ascending=True)
+            result.columns = ['visits']
+            data = result.tail(30)
+            finishedplot = data.plot(kind='barh', title=str(self.prefix.value) + " top 30",ylabel='visits', figsize=(10,10))
+            home = expanduser("~")
+            plt.savefig(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.svg"))
+            nx.write_gexf(plt, str(Path(home).joinpath("Desktop",str(self.prefix.value)+"web_histopy_top_30.gexf")))
+            f.close()
+        except AttributeError:
+            print("select file first")
+    
+    def create_networks(self,button):
+        max_timedelta = 600 # maximum time between visits to count as an edge in seconds
+        edge_list = pd.DataFrame(columns=['source', 'target', 'timestamp', 'timedelta'])
+        try:
+            f = open(self.csv_path, 'r')
+        except AttributeError:
+            print("select file first")
+            return 1 # exit function if no file is selected
+        history = pd.read_csv(f, parse_dates=['Time'])
+        df = history.sort_values(by='Time')
+        i = 0
+        previous = None
+        for row in df.iterrows():
+            if previous is not None:
+                if row[1]['Time'] - previous[1]['Time'] > pd.Timedelta(0, 's') and row[1]['Time'] - previous[1]['Time'] < pd.Timedelta(max_timedelta, 's'):
+                    edge = (previous[1]['Domain'], row[1]['Domain'], row[1]['Time'], (row[1]['Time'] - previous[1]['Time']).seconds)
+                    edge_list.loc[len(edge_list)] = edge
+            previous = row
+        home = expanduser("~")
+        edge_path = Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_histopy_edge_list.csv")
+        edge_list.to_csv(edge_path, index=False)
+        print(f'finished edge list for selected file')
+        f.close()
+        f = open(edge_path, 'r')
+        multi_network = pd.read_csv(f)
+        # delete catch all rows for sites visited less than x times
+        multi_network = multi_network[multi_network['source'] != '[hidden]']
+        multi_network = multi_network[multi_network['target'] != '[hidden]']
+        multi_network = multi_network[multi_network['timedelta'] <= 300]  # only include edges with timedelta under 5 minutes
+        multi_network = multi_network[multi_network['source'] != multi_network['target']]  # remove self-loops
+        grouped = multi_network.groupby(['source', 'target'], as_index=False).count()[['source','target','timestamp']]
+        grouped.columns = ['source', 'target', 'weight']
+        grouped = grouped[grouped['weight'] >= 2]
+        grouped['source'] = grouped['source'].str.replace('hidden', '')
+        grouped['target'] = grouped['target'].str.replace('hidden', '')
+        f.close()
+        f = grouped
+
+        domain_net = Network(height='1080px', width='100%', notebook=False, directed=True, cdn_resources="in_line")
+        
+        # set the physics layout of the network
+        # domain_net.barnes_hut()
+        domain_net.force_atlas_2based()
+        network = nx.from_pandas_edgelist(f, edge_attr=True, create_using=nx.DiGraph)
+        for node in network.nodes:
+            network.nodes[node]['title'] = str()
+            network.nodes[node]['size'] = 200 * (network.out_degree(node, weight='weight') + 1) / network.size(weight='weight')
+        
+        domain_net.from_nx(network, node_size_transf= lambda x: x,edge_scaling=True)
+        neighbor_map = domain_net.get_adj_list()
+        
+        # add neighbor data to node hover data
+        for node in domain_net.nodes:
+            node['title'] += ' Neighbors:<br>' + '<br>'.join(neighbor_map[node['id']])
+        
+        # domain_net.show_buttons(filter_='edges')
+        
+        domain_net.set_options("""
+        var options = {
+            "nodes": {
+                "font": {
+                    "size": 32
+                }},
+            "edges": {
+                "color": {
+                    "inherit": true
+                },
+                "smooth": {
+                    "type": "dynamic",
+                    "forceDirection": "none"
+                }
+            },
+            "physics": {
+                "forceAtlas2Based": {
+                    "gravitationalConstant": -30,
+                    "springLength": 0,
+                    "springConstant": 0.025,
+                    "avoidOverlap": 0.5
+                },
+                "minVelocity": 0.75,
+                "dampening": 0,
+                "solver": "forceAtlas2Based"
+            }
+        }
+        """
         )
 
-        self.main_window.content = self.main_box
-        self.main_window.show()
+        #domain_net.show(str(Path(home).joinpath("Desktop","web_history_graph.html")),notebook=False)
+        domain_net.save_graph(str(Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_history_graph.html")))
+        nx.write_gexf(network,str(Path(home).joinpath("Desktop",str(self.prefix.value)+"_web_history_graph.gexf")))
+        
+
+    #set up window and buttons
+    def viswindow(self):
+        self.visualization = toga.Box(id="visualization", style=Pack(direction=COLUMN, flex=1, padding=5))
+        self.visualization.add(
+            toga.Button(labels[current_lang][4], style=large_font, on_press=self.tomenu))
+
+        #self.file_text = toga.Label("Select a Webhistopy file to visualize.", style=large_font)
+        #self.visualization.add(self.file_text)
+        self.visualization.add(
+            toga.Button("Select Webhistopy file to visualize", style=large_font, on_press=self.selectfile))
+        
+        #self.prefix_text = toga.Label("Add an optional prefix to your output files' names.", style=large_font)
+        #self.visualization.add(self.prefix_text)
+        self.prefix = toga.TextInput(
+            placeholder="Optional output file prefix", style=large_font
+        )
+        self.visualization.add(self.prefix)
+        
+        #.top30_text = toga.Label("Generate a bar diagram with your top 30 domains and save it to your desktop as both a .svg and a .gexf file.", style=large_font)
+        #self.visualization.add(self.top30_text)
+        self.visualization.add(
+            toga.Button("Show top 30 domains", style=large_font, on_press=self.top30)
+        )
+
+        
+        #self.weightednetwork_text = toga.Label("Generate a weighted network and save it to your desktop as both a .html and a .gexf file.", style=large_font)
+        #self.visualization.add(self.weightednetwork_text)
+        self.visualization.add(
+            toga.Button("Create weighted network", style=large_font, on_press=self.create_networks)
+        )
+
+        self.main_window.content = self.visualization
+
+    def toscreen2(self,button):
+        self.main_window.size=(1350, 768)
+        self.main_window.content = self.screen2
+
+    def toscreen3(self,button):
+        self.main_window.size = (500,500)
+        self.viswindow()
+    
+    def tomenu(self,button):
+        self.main_window.size = (500,500)
+        self.main_window.content = self.menu
+
 
     def create_export(self, button):
         data = {
@@ -232,9 +428,9 @@ class WebhistoPy(toga.App):
         history = self.history
         for row in self.unmasked_data:
             if row["domain"] in self.hidden_domains:
-                key = f"[verborgen_{i}]"
+                key = f"[hidden_{i}]"
                 history["domain"].replace(
-                    to_replace=row["domain"], value=f"[verborgen_{i}]", inplace=True
+                    to_replace=row["domain"], value=f"[hidden_{i}]", inplace=True
                 )
                 i += 1
             elif row["domain"] == "":
@@ -257,12 +453,12 @@ class WebhistoPy(toga.App):
 
             self.preview.add(
                 toga.MultilineTextInput(
-                    value=history.to_string(index=False, header=["Zeit", "Domain"]),
+                    value=history.to_string(index=False, header=["Time", "Domain"]),
                     readonly=True,
                     style=small_font_flex,
                 )
             )
-            self.preview.add(toga.Label("Nur exakt diese Daten werden erfasst."))
+            self.preview.add(toga.Label("Only exactly this data will be saved."))
             self.preview.add(self.export_button())
             # self.preview.refresh()
 
@@ -270,7 +466,7 @@ class WebhistoPy(toga.App):
 
     def preview_button(self):
         button = toga.Button(
-            "Weiter zur Vorschau",
+            "Preview",
             id="preview",
             style=large_font,
             on_press=self.create_export,
@@ -278,28 +474,19 @@ class WebhistoPy(toga.App):
         return button
 
     def upload(self, button):
-        history_path = os.path.expanduser(
-            f"~/Desktop/{self.pseudonym.value}_web_histopy_history.csv"
-        )
-        data_path = os.path.expanduser(
-            f"~/Desktop/{self.pseudonym.value}_web_histopy_stats.yaml"
-        )
+        home = expanduser("~")
+        history_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_history.csv")
+        data_path = Path(home).joinpath("Desktop",str(self.pseudonym.value)+"_web_histopy_stats.yaml")
 
-        self.history.to_csv(history_path, header=["Zeit", "Domain"], index=False)
+        self.history.to_csv(history_path, header=["Time", "Domain"], index=False)
         with open(data_path, "w") as f:
             yaml.dump(self.data, f)
 
-        # nc = nextcloud_client.Client.from_public_link(self.drop_link)
-        # nc.drop_file(history_path)
-        # nc.drop_file(data_path)
-
         self.main_window.info_dialog(
-            "Vielen Dank für Ihre Teilnahme!",
+            "Successfully created Webhistopy file",
             textwrap.dedent(
                 f"""\
-                Sie können das Programm jetzt schließen und deinstallieren.
-                Die hochgeladenen Dateien wurden für Sie noch einmal in ihrem Desktop-Ordner zur Einsicht gespeichert.
-                Sie können der Nutzung und Speicherung Ihrer Daten jederzeit via Email an {self.contact} widersprechen.
+                The Webhistopy file has been created and saved to your desktop.
                 """
             ),
         )
@@ -325,7 +512,7 @@ class WebhistoPy(toga.App):
         check_list = toga.Box(style=Pack(direction=COLUMN))
 
         for item in data:
-            if item["domain"] != "[verborgen]":
+            if item["domain"] != "[hidden]":
                 check_list.add(self.domain_switch(item["domain"]))
 
         return toga.ScrollContainer(content=check_list, style=Pack(flex=1))
@@ -333,7 +520,7 @@ class WebhistoPy(toga.App):
     def show_histories(self, button):
         if len(self.browsers) == 0:
             self.main_window.error_dialog(
-                "Keine Auswahl", "Bitte wählen Sie mindestens einen Browser."
+                "No selection", "Please select at least one browser."
             )
             return 1
         data = self.get_histories(self.browsers)
@@ -345,7 +532,7 @@ class WebhistoPy(toga.App):
             pass
 
         self.table_container.add(
-            toga.Label("Welche Domains wollen Sie verbergen?", style=large_font)
+            toga.Label("Please select any domains you want to hide.", style=large_font)
         )
 
         self.hidden_domains = []
@@ -356,7 +543,7 @@ class WebhistoPy(toga.App):
         self.table_container.add(self.preview_button())
 
     def get_histories(self, browsers):
-
+        self.time_limit = self.weeks.value
         output_df = pd.DataFrame(columns=["domain", "visits"])
 
         for browser in browsers:
@@ -365,12 +552,13 @@ class WebhistoPy(toga.App):
                 b = Browser()
             except TypeError:
                 self.main_window.error_dialog(
-                    "Nicht unterstützt",
+                    "Not supported",
                     textwrap.dedent(
                         f"""\
-                        {browser} ist leider nicht unterstützt auf ihrem Betriebssystem.
-                        Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
-                        kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser bitte ab.
+                        {browser} is not supported by your operating system.
+                        If you do have this browser installed and regularly use it, \
+                        please contact the developers. Otherwise, please deselect the browser.
+
                         """
                     ),
                 )
@@ -389,17 +577,18 @@ class WebhistoPy(toga.App):
                         "Moin!",
                         textwrap.dedent(
                             """\
+                            Due to privacy reasons we need your permission to evaluate your Safari data.
+                            Please change to the window which has just opened and follow the following steps:
+
+                            1. Click the lock and enter your system password.
+                            2. Select "full data access" in the menu on the left.
                             Aus Privatsphäre-Gründen benötigen wir Ihre Erlaubnis, Safari-Daten auszuwerten.
+                            3. Pull your Webhistopy App from your "Apps" folder into the list on the right side.
+                            4. Restart the app.
 
-                            Wechseln Sie bitte ins soeben geöffnete Einstellungsfenster und
-                            1. klicken Sie auf das Schloss und geben ihr System-Passwort ein.
-                            2. wählen Sie "Vollständiger Datenzugriff" im Menü links.
-                            3. ziehen Sie die Webhistopy App aus ihrem "Anwendungen"-Ordner in die Liste \
-                                auf der rechten Seite.
-                            4. starten Sie die App erneut.
+                            You will have the option to revise all of your data before it is saved.
 
-                            Sie haben die Möglichkeit, alle Daten vor Upload zu bereinigen.
-                            Herzlichen Dank!"""
+                            Thanks a lot!"""
                         ),
                     )
                     raise
@@ -425,9 +614,9 @@ class WebhistoPy(toga.App):
                 # limit to work_days
                 df = df[df[0].dt.weekday.isin(week_day_numbers)]
 
-                df = df[df[0].dt.hour < int(self.times["Feierabend"])]
+                df = df[df[0].dt.hour < int(self.times["ends"])]
                 # limit to times
-                df = df[df[0].dt.hour > int(self.times["Beginn"])]
+                df = df[df[0].dt.hour > int(self.times["starts"])]
 
                 print(df)
 
@@ -436,11 +625,12 @@ class WebhistoPy(toga.App):
 
             except KeyError:
                 self.main_window.error_dialog(
-                    "Keine Daten",
+                    "No data",
                     textwrap.dedent(
                         f"""\
-                        Keine Daten für {browser}. Falls dieser Browser installiert ist und sie ihn regelmäßig verwenden, \
-                        kontaktieren Sie bitte den Entwickler. Ansonsten wählen sie den Browser ab.
+                        No data found for {browser}. 
+                        If you do have this browser installed and regularly use it, \
+                        please contact the developers. Otherwise, please deselect the browser.
                         """
                     ),
                 )
@@ -460,9 +650,9 @@ class WebhistoPy(toga.App):
             self.history["domain"].isin(
                 top_df["domain"][top_df["visits"] <= self.visit_limiter]
             )
-        ] = "[verborgen]"
+        ] = "[hidden]"
 
-        top_df["domain"][top_df["visits"] <= self.visit_limiter] = "[verborgen]"
+        top_df["domain"][top_df["visits"] <= self.visit_limiter] = "[hidden]"
         top_df["hide"] = False
         self.unmasked_data = top_df.to_dict("records")
 
