@@ -15,7 +15,6 @@ Participants can:
 3. hide remaining domains that they want to stay private
 4. inspect the data before upload
 5. see some rudimentary visualisations of their data.
-6. receive a copy of their data on upload
 
 Users receive the data in form of a CSV and a YAML file on their Desktop which can be sent to the researchers.
 
