@@ -22,9 +22,11 @@ Users receive the data in form of a CSV and a YAML file on their Desktop which c
 
 Installers for macOS and Windows can be found under [Releases](https://github.com/Leibniz-HBI/webhistopy/releases).
 
-If macOS prompts you that it can't scan the dmg for malware, you can open it anyway by clicking `Done` and opening `System Settings > Privacy and Security`, scrolling down and clicking the button `Open Anyway`. (It is available for a while after the last attempt to open it). This is not recommended for any software you do not trust!
+If macOS prompts you that it can't scan the dmg for malware, you can open it anyway by clicking `Done` and opening `System Settings > Privacy and Security`, scrolling down and clicking the button `Open Anyway`. (It is available for a while after the last attempt to open it). You have to repeat this for the app itself then.
 
-But please be aware that the software is experimental and will most likely be outdated without a recent update of the code and dependencies, which means, e.g., that it might misread the respective browser databases.
+This is not recommended for any software you do not trust!
+
+Be aware that the software is experimental and will most likely be outdated without a recent update of the code and dependencies, which means, e.g., that it might misread the respective browser databases.
 
 Please be aware of known issues in [Issues](https://github.com/Leibniz-HBI/webhistopy/issues) and verify results before using the app for research purposes.
 
